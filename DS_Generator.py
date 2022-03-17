@@ -59,7 +59,21 @@ class DS_Generator():
             self.read_img(positive),
             self.read_img(negative),
         )
+    def augment(image):
+        """
+        Function for data augmentation.
+        """
+        new_height = new_width = 32
+        image = tf.image.resize(image, (new_height, new_width))
+
+        if tf.random.uniform((), minval=0, maxval=1) < 0.1:
+            image = tf.tile(tf.image.rgb_to_grayscale(image), [1, 1, 3])
+
+        image = tf.image.random_brightness(image, max_delta=0.1)
+        image = tf.image.random_contrast(image, lower=0.1, upper=0.2)
         
+        return image
+            
     def read_img(filename):
         """
         Load the specified file as a JPEG image, preprocess it and
@@ -70,4 +84,6 @@ class DS_Generator():
         image = tf.image.decode_jpeg(image_string, channels=3)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, TARGET_SHAPE)
-        return image
+        return augment(image)
+
+    
