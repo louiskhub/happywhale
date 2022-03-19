@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from random import sample
 import pandas as pd
 from util import IMG_FOLDER, TARGET_SHAPE, IMG_CSV_SUBSET, MOST_COMMON_INDIVIDUALS
 
@@ -11,26 +12,30 @@ class DS_Generator():
 
     def preprocess(self, individuals_path=None):
 
-        anchors = np.empty(0)
-        positives = np.empty(0)
-        negatives = np.empty(0)
+        anchors = []
+        positives = []
+        negatives = []
 
         for i in MOST_COMMON_INDIVIDUALS:
-            pos_file_names = IMG_CSV_SUBSET[IMG_CSV_SUBSET.loc[:, "individual_id"] == i[0]].loc[:, "image"].to_numpy()  # anchors + positives
-            neg_file_names = IMG_CSV_SUBSET[IMG_CSV_SUBSET.loc[:, "individual_id"] != i[0]].loc[:, "image"].to_numpy()  # negatives
+            pos_file_names = IMG_CSV_SUBSET[IMG_CSV_SUBSET.loc[:, "individual_id"] == i[0]].loc[:, "image"].tolist()  # anchors + positives
+            neg_file_names = IMG_CSV_SUBSET[IMG_CSV_SUBSET.loc[:, "individual_id"] != i[0]].loc[:, "image"].tolist()  # negatives
             half_len = len(pos_file_names) // 2
 
-            anchors = np.concatenate((anchors, pos_file_names[:half_len]))
-            positives = np.concatenate((positives, pos_file_names[half_len:half_len * 2]))
+            anchors = anchors + pos_file_names[:half_len]
+            positives = positives + pos_file_names[half_len:half_len * 2]
 
             # random choice is not optimal (no guarantee that negative examples are not often times the same because of some bias)
             # we can look for a better solution later on
-            negatives = np.concatenate((negatives, np.random.choice(neg_file_names, size=half_len, replace=False)))
+            n = sample(neg_file_names, k=half_len)
+            negatives = negatives + n
 
         print("\n Triplet pairs generated! \n")
 
         img_count = len(anchors)
 
+        # anchors = anchors.astype(np.str_)
+        # positives = positives.astype(np.str_)
+        # negatives = negatives.astype(np.str_)
         # anchors = tf.convert_to_tensor(anchors)
         # positives = tf.convert_to_tensor(positives)
         # negatives = tf.convert_to_tensor(negatives)
@@ -70,7 +75,8 @@ class DS_Generator():
         Load the specified file as a JPEG image, preprocess it and
         resize it to the target shape.
         """
-
+        print(type(IMG_FOLDER))
+        print(filename)
         image_string = tf.io.read_file(IMG_FOLDER + filename)
         image = tf.image.decode_jpeg(image_string, channels=3)
         image = tf.image.convert_image_dtype(image, tf.float32)
