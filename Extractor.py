@@ -10,7 +10,7 @@ def extract_individuals(n_most_common=100):
     ids = [i for t in most_common_indices for i in t]
     imgs = IMG_CSV[IMG_CSV.loc[:, "individual_id"].isin(ids)].reset_index(drop=True)
 
-    imgs.to_csv("ckpts/imgs_subset.csv")
+    imgs.to_csv("ckpts/imgs_subset.csv", index=False)
     np.save("ckpts/most_common_indices", most_common_indices)
 
 
