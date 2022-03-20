@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from util import IMG_FOLDER, TARGET_SHAPE, IMG_CSV_SUBSET, MOST_COMMON_INDIVIDUALS
+from util import IMG_FOLDER, TARGET_SHAPE, IMG_CSV_SUBSET, IMG_CSV, MOST_COMMON_INDIVIDUALS
 
 
 class DS_Generator():
@@ -9,15 +9,21 @@ class DS_Generator():
     def __init__(self):
         pass
 
-    def preprocess(self, individuals_path=None):
+    def preprocess(self, subset=False):
+
+        df = IMG_CSV
+        if subset:
+            df = IMG_CSV_SUBSET
 
         anchors = np.empty(0)
         positives = np.empty(0)
         negatives = np.empty(0)
 
         for i in MOST_COMMON_INDIVIDUALS:
-            pos_file_names = IMG_CSV_SUBSET[IMG_CSV_SUBSET.loc[:, "individual_id"] == i[0]].loc[:, "image"].to_numpy()  # anchors + positives
-            neg_file_names = IMG_CSV_SUBSET[IMG_CSV_SUBSET.loc[:, "individual_id"] != i[0]].loc[:, "image"].to_numpy()  # negatives
+            pos_file_names = df[df.loc[:, "individual_id"] == i[0]].loc[:,
+                             "image"].to_numpy()  # anchors + positives
+            neg_file_names = df[df.loc[:, "individual_id"] != i[0]].loc[:,
+                             "image"].to_numpy()  # negatives
             half_len = len(pos_file_names) // 2
 
             anchors = np.concatenate((anchors, pos_file_names[:half_len]))
@@ -27,13 +33,9 @@ class DS_Generator():
             # we can look for a better solution later on
             negatives = np.concatenate((negatives, np.random.choice(neg_file_names, size=half_len, replace=False)))
 
-        print("\n Triplet pairs generated! \n")
+        print("\nTriplet pairs generated! \n")
 
         img_count = len(anchors)
-
-        # anchors = tf.convert_to_tensor(anchors)
-        # positives = tf.convert_to_tensor(positives)
-        # negatives = tf.convert_to_tensor(negatives)
 
         anchor_ds = tf.data.Dataset.from_tensor_slices(anchors)
         positive_ds = tf.data.Dataset.from_tensor_slices(positives)
@@ -75,5 +77,6 @@ class DS_Generator():
         image = tf.image.decode_jpeg(image_string, channels=3)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, TARGET_SHAPE)
+        tensor = tf.expand_dims(image, 0)
 
-        return image
+        return tensor

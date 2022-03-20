@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import layers
+from tensorflow.keras import Model
 from tensorflow.keras.applications import resnet
 from happywhale.util import TARGET_SHAPE
 
@@ -35,20 +36,24 @@ class DistanceLayer(layers.Layer):
         super().__init__(**kwargs)
 
     def call(self, anchor, positive, negative):
+        anchor, positive, negative = self.embed(anchor, positive, negative)
         ap_distance = tf.reduce_sum(tf.square(anchor - positive), -1)
         an_distance = tf.reduce_sum(tf.square(anchor - negative), -1)
         return (ap_distance, an_distance)
+
+    def embed(self, anchor, positive, negative):
+        return(
+            embedding(resnet.preprocess_input(anchor)),
+            embedding(resnet.preprocess_input(positive)),
+            embedding(resnet.preprocess_input(negative))
+        )
 
 
 anchor_input = layers.Input(name="anchor", shape=TARGET_SHAPE + (3,))
 positive_input = layers.Input(name="positive", shape=TARGET_SHAPE + (3,))
 negative_input = layers.Input(name="negative", shape=TARGET_SHAPE + (3,))
 
-distances = DistanceLayer()(
-    embedding(resnet.preprocess_input(anchor_input)),
-    embedding(resnet.preprocess_input(positive_input)),
-    embedding(resnet.preprocess_input(negative_input)),
-)
+distances = DistanceLayer()(anchor_input, positive_input, negative_input)
 
 siamese_network = tf.keras.Model(
     inputs=[anchor_input, positive_input, negative_input], outputs=distances
