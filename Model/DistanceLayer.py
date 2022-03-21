@@ -1,10 +1,16 @@
+"""
+Distance Layer Model: Calculates the Distance between the images. 
+
+Louis Kapp, Felix Hammer, Yannik Ullrich
+"""
+
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras import Model
 from tensorflow.keras.applications import resnet
 from happywhale.util import TARGET_SHAPE
 
-
+# Base cnn: Resnet followed by Flattening, Dense and Batch normalization 
 base_cnn = resnet.ResNet50(
     weights="imagenet", input_shape=TARGET_SHAPE + (3,), include_top=False
 )
@@ -16,8 +22,10 @@ dense2 = layers.Dense(256, activation="relu")(dense1)
 dense2 = layers.BatchNormalization()(dense2)
 output = layers.Dense(256)(dense2)
 
+# Embedding Model 
 embedding = Model(base_cnn.input, output, name="Embedding")
 
+# Freezing weights for the first few layers
 trainable = False
 for layer in base_cnn.layers:
     if layer.name == "conv5_block1_out":
