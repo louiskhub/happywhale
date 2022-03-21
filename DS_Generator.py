@@ -1,3 +1,9 @@
+"""
+Creates a Tensorflow dataset and Triplets for the Triplet loss function.
+
+Louis Kapp, Felix Hammer, Yannik Ullrich
+"""
+
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -5,12 +11,42 @@ from util import IMG_FOLDER, TARGET_SHAPE, IMG_CSV_SUBSET, IMG_CSV, MOST_COMMON_
 
 
 class DS_Generator():
+    """
+    Class used for dataset generation.
+    
+    Attributes
+    ----------
+    
+    Methods
+    ---------
+    preprocess(subset=false)
+        generates training and validation triplet dataset
+    read_triplets(anchor, positive, negative)
+        runs preprocess for anchor, positive, negative
+    read_img(filename)
+        Load the specified file as a JPEG image, preprocess it and
+        resize it to the target shape.
+    """
 
     def __init__(self):
+        """Constructor"""
         pass
 
     def preprocess(self, subset=False):
-
+        """
+        Generates Triplets as Tensorflow Datasets
+        
+        Parameters
+        ----------
+        subset : boolean, optional
+            
+        Returns
+        -------
+        train_ds: Tensorflow Take Dataset
+            Dataset of Triplets for Training
+        val_ds: Tensorflow Take Dataset
+            Dataset of Triplets for Validation
+        """
         df = IMG_CSV
         if subset:
             df = IMG_CSV_SUBSET
@@ -59,6 +95,18 @@ class DS_Generator():
         """
         Given the filenames corresponding to the three images, load and
         preprocess them.
+        
+        Parameters
+        ----------
+        anchor: 
+        
+        positive
+        
+        negative
+        
+        Returns
+        -------
+        
         """
 
         return (
@@ -71,6 +119,15 @@ class DS_Generator():
         """
         Load the specified file as a JPEG image, preprocess it and
         resize it to the target shape.
+        
+        Parameters
+        ----------
+        filename: string
+            filename of the File containing the Images
+        Returns
+        -------
+        tensor: tensorflow tensor
+            The Image as a Tensor
         """
 
         image_string = tf.io.read_file(IMG_FOLDER + filename)
