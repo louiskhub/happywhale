@@ -1,3 +1,9 @@
+"""
+Extracts the Images with the most common individuals and the image shapes.
+
+Louis Kapp, Felix Hammer, Yannik Ullrich
+"""
+
 import os
 import numpy as np
 from PIL import Image
@@ -5,6 +11,14 @@ from util import IMG_CSV, IMG_FOLDER
 
 
 def extract_individuals(n_most_common=100):
+    """
+    Extracts the (100) most common individuals out of all individuals and saves them in a csv.
+    
+    Parameters
+    ----------
+    n_most_common: int, optional, default=100
+        The number of the most common indices. 
+    """
     most_common = IMG_CSV.value_counts(subset=["individual_id"])[:n_most_common]
     most_common_indices = most_common[:n_most_common].index.values
     ids = [i for t in most_common_indices for i in t]
@@ -15,6 +29,9 @@ def extract_individuals(n_most_common=100):
 
 
 def extract_shapes():
+    """
+    Extracts the shapes of the images from the IMG_CSV and saves them.
+    """
     img_shapes = []
 
     for i in IMG_CSV.loc[:, "image"].dropna():
