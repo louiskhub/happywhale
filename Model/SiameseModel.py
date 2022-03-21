@@ -1,3 +1,9 @@
+"""
+Siamese Network
+
+Louis Kapp, Felix Hammer, Yannik Ullrich
+"""
+
 import tensorflow as tf
 from tensorflow.keras import metrics
 from tensorflow.keras import Model
