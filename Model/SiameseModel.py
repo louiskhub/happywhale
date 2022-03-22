@@ -1,6 +1,8 @@
 """
 Siamese Network
 
+Group 02
+
 Louis Kapp, Felix Hammer, Yannik Ullrich
 """
 
