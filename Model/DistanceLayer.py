@@ -3,6 +3,7 @@ Distance Layer Model: Calculates the Distance between the images.
 
 Louis Kapp, Felix Hammer, Yannik Ullrich
 """
+happywhale = __import__("happywhale-main")
 
 import tensorflow as tf
 from tensorflow.keras import layers
