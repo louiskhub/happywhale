@@ -7,8 +7,10 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras import Model
-from tensorflow.keras.applications import resnet
-from happywhale.util import TARGET_SHAPE
+from tensorflow.keras.applications import resnet#
+import sys
+sys.path.append("..")
+from util import TARGET_SHAPE
 
 # Base cnn: Resnet followed by Flattening, Dense and Batch normalization 
 base_cnn = resnet.ResNet50(
