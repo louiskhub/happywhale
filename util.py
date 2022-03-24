@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 # Target Shape
-TARGET_SHAPE = (300, 300)
+TARGET_SHAPE = (256,256)
 # Folder in which the Original Kaggle Training Images reside
 IMG_FOLDER = "../KaggleData/train_images"
 
