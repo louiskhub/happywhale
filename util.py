@@ -19,3 +19,5 @@ UPPER_LIMIT_OF_IMAGES = 10
 give_nice_percentage = lambda x,y: int( 100 * np.round(x/y,2))
 
 PATH_FOR_OUR_TRAINING_DATA = "../OurTrainingData"
+
+BATCH_SIZE = 64
