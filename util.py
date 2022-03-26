@@ -18,6 +18,8 @@ UPPER_LIMIT_OF_IMAGES = 10
 
 give_nice_percentage = lambda x,y: int( 100 * np.round(x/y,2))
 
-PATH_FOR_OUR_TRAINING_DATA = "../OurTrainingData"
+PATH_FOR_OUR_TRAINING_DATA = "../OurSpeciesTrainingData"
 
 BATCH_SIZE = 64
+
+training_df = pd.read_csv(PATH_FOR_OUR_TRAINING_DATA + "/data.csv", index_col=0)
