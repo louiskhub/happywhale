@@ -158,7 +158,7 @@ class DS_Generator():
     def __init__(self):
         pass
 
-    def generate(self, df, factor_of_validation_ds=0.1, increase_ds_factor=1, individuals=False, batch_size=None):
+    def generate(self, df, factor_of_validation_ds=0.1, increase_ds_factor=1, individuals=False, batch_size=None, one_hot_encode = False):
         global TARGET_SHAPE
         """This function creates the tensorflow dataset for training:
         -----------------
@@ -176,6 +176,8 @@ class DS_Generator():
         individuals - bool / whether you want to try identifying individuals or species
 
         batch_size - None,int / Batch-size for ds. If none specified -> take the one from utils.py
+        
+        one_hot_encode - Bool / whether to one hot encode the labels
 
         -----------------
         returns:
@@ -212,6 +214,12 @@ class DS_Generator():
         ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
 
         # map preprosessing
+
+        num_classes = len({i for i in df["species_label"]})
+        if one_hot_encode:
+            func = lambda img,label : (img, tf.one_hot(label,num_classes))
+            ds = ds.map(func,num_parallel_calls=8)
+
         ds = ds.map(self.prepare_images_mapping, num_parallel_calls=8)
 
         # split up validation set
