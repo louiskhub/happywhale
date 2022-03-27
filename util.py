@@ -1,25 +1,35 @@
 """
-Python script containing all global variables and filepaths.
+Python script containing all global variables
 
 Louis Kapp, Felix Hammer, Yannik Ullrich
 """
 
 import pandas as pd
-import numpy as np
 
-# Target Shape
-TARGET_SHAPE = (256,256)
-# Folder in which the Original Kaggle Training Images reside
+
+################################################################
+# LOCAL FILEPATHS ##############################################
+################################################################
+
+# original data from https://www.kaggle.com/competitions/whale-categorization-playground/data
 IMG_FOLDER = "../KaggleData/train_images"
-
 IMG_CSV = pd.read_csv("../KaggleData/train.csv")
 
-UPPER_LIMIT_OF_IMAGES = 10
+# local path to our modified version of the kaggle data
+TRAIN_DATA_PATH = "../OurSpeciesTrainingData"
 
-give_nice_percentage = lambda x,y: int( 100 * np.round(x/y,2))
 
-PATH_FOR_OUR_TRAINING_DATA = "../OurSpeciesTrainingData"
+################################################################
+# PREPROCESSING ################################################
+################################################################
+
+TARGET_SHAPE = (256, 256)
+UPPER_LIMIT_OF_IMAGES = 10  # max. 10 images per individual to reduce overfitting
+TRAIN_DF = pd.read_csv(TRAIN_DATA_PATH + "/data.csv", index_col=0)
+
+
+################################################################
+# TRAINING #####################################################
+################################################################
 
 BATCH_SIZE = 64
-
-training_df = pd.read_csv(PATH_FOR_OUR_TRAINING_DATA + "/data.csv", index_col=0)
