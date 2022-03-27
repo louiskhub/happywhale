@@ -7,7 +7,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from util import PATH_FOR_OUR_TRAINING_DATA, UPPER_LIMIT_OF_IMAGES, BATCH_SIZE, training_df
+from util import PATH_FOR_OUR_TRAINING_DATA, UPPER_LIMIT_OF_IMAGES, BATCH_SIZE, training_df, TARGET_SHAPE
 import math
 import random
 
@@ -159,6 +159,7 @@ class DS_Generator():
         pass
 
     def generate(self, df, factor_of_validation_ds=0.1, increase_ds_factor=1, individuals=False, batch_size=None):
+        global TARGET_SHAPE
         """This function creates the tensorflow dataset for training:
         -----------------
         arguments:
@@ -227,11 +228,11 @@ class DS_Generator():
         if increase_ds_factor == 1:
             pass
         elif increase_ds_factor == 2:
-            augmented_ds1 = train_ds.map(self.augment1)
+            augmented_ds1 = train_ds.map(self.augment1, num_parallel_calls=8)
             train_ds = train_ds.concatenate(augmented_ds1)
         elif increase_ds_factor == 3:
-            augmented_ds1 = train_ds.map(self.augment1)
-            augmented_ds2 = train_ds.map(self.augment2)
+            augmented_ds1 = train_ds.map(self.augment1, num_parallel_calls=8)
+            augmented_ds2 = train_ds.map(self.augment2, num_parallel_calls=8)
 
             train_ds = train_ds.concatenate(augmented_ds1)
             train_ds = train_ds.concatenate(augmented_ds2)
@@ -249,14 +250,16 @@ class DS_Generator():
         x -= 1
         return x, label
 
-    def augment1(self, img, label):
-        x = tf.keras.preprocessing.image.random_rotation(x, 40)
+    def augment1(self, x, label):
+        x = tf.image.random_crop(x, TARGET_SHAPE + (1,))
+        x = tf.image.resize(x, TARGET_SHAPE)
         x = tf.image.random_flip_up_down(x)
         x = tf.image.random_flip_left_right(x)
-        return tf.image.flip_left_right(img), label
+        return x, label
 
-    def augment1(self, img, label):
-        x = tf.keras.preprocessing.image.random_rotation(x, 40)
+    def augment2(self, x, label):
+        x = tf.image.random_contrast(x, 0.2, 0.5)
+        x = tf.image.random_brightness(x, 0.2)
         x = tf.image.random_flip_up_down(x)
         x = tf.image.random_flip_left_right(x)
-        return tf.image.flip_left_right(img), label
+        return x, label
