@@ -7,7 +7,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import matplotlib.pyplot as plt
 import cv2
 import os
-from util import IMG_CSV, IMG_FOLDER
+from util import PRELIM_TRAIN_DF, TRAIN_IMG_FOLDER
 
 
 def plot_preprocessed(anchor, positive, negative):
@@ -42,10 +42,10 @@ def plot_original():
     """
     fig, ax = plt.subplots(2, 5, figsize=(40, 20))
 
-    for i, img in enumerate(IMG_CSV.loc[:9, "image"]):
-        image = plt.imread(os.path.join(IMG_FOLDER, img))
+    for i, img in enumerate(PRELIM_TRAIN_DF.loc[:9, "image"]):
+        image = plt.imread(os.path.join(TRAIN_IMG_FOLDER, img))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        ax[i // 5, i % 5].set_title(IMG_CSV.iloc[i, 2])
+        ax[i // 5, i % 5].set_title(PRELIM_TRAIN_DF.iloc[i, 2])
         ax[i // 5, i % 5].imshow(image)
 
     plt.tight_layout()
