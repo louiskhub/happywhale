@@ -10,6 +10,7 @@ import pandas as pd
 from util import TRAIN_DATA_PATH, UPPER_LIMIT_OF_IMAGES, BATCH_SIZE, TRAIN_INDIVIDUAL_DF, TARGET_SHAPE
 import math
 import random
+from src.data_augmentation import extract_foreground
 
 
 def df_filter_for_indidum_training(train_df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
@@ -212,7 +213,7 @@ class DS_Generator():
         ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
 
         # map preprosessing
-        ds = ds.map(self.prepare_images_mapping, num_parallel_calls=8)
+        ds = ds.map(self.prepare_images_mapping)#, num_parallel_calls=8)
 
         # split up validation set
         if factor_of_validation_ds > 0:
@@ -243,8 +244,8 @@ class DS_Generator():
         return train_ds, val_ds
 
     def prepare_images_mapping(self, path, label):
-        x = tf.io.read_file(path)
-        x = tf.image.decode_jpeg(x, channels=1)
+        img = tf.py_function(extract_foreground, [path], tf.uint8)
+        x = tf.convert_to_tensor(img)
         x = tf.cast(x, dtype=tf.float32)
         x *= (2 / 255)
         x -= 1
@@ -252,7 +253,7 @@ class DS_Generator():
 
     def augment1(self, x, label):
         x = tf.image.random_crop(x, TARGET_SHAPE + (1,))
-        x = tf.image.resize(x, TARGET_SHAPE)
+        x = tf.image.resize(x, TARGET_SHAPE) # just in case the input imgs are not resized yet
         x = tf.image.random_flip_up_down(x)
         x = tf.image.random_flip_left_right(x)
         return x, label

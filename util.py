@@ -12,11 +12,11 @@ import pandas as pd
 ################################################################
 
 # original data from https://www.kaggle.com/competitions/whale-categorization-playground/data
-TRAIN_IMG_FOLDER = "../KaggleData/train_images"
-TRAIN_CSV = "../KaggleData/train.csv"
+TRAIN_IMG_FOLDER = "../../KaggleData/train_images"
+TRAIN_CSV = "../../KaggleData/train.csv"
 
 # local path to our modified version of the kaggle data
-TRAIN_DATA_PATH = "../OurSpeciesTrainingData"
+TRAIN_DATA_PATH = "../../OurSpeciesTrainingData"
 
 
 ################################################################
