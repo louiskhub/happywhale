@@ -12,18 +12,18 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def create_our_training_data(IMG_FOLDER,PATH_FOR_OUR_TRAINING_DATA,TARGET_SHAPE):
-    df = pd.read_csv(PATH_FOR_OUR_TRAINING_DATA+"/data.csv",index_col=0)
+def create_our_training_data(IMG_FOLDER, TRAIN_DATA_PATH, TARGET_SHAPE):
+    df = pd.read_csv(TRAIN_DATA_PATH + "/data.csv", index_col=0)
     
-    image_paths =df["image"].values
+    image_paths = df["image"].values
     
     for i in tqdm(range(len(image_paths))):
-        read_path = IMG_FOLDER + "/"+ image_paths[i]
+        read_path = IMG_FOLDER + "/" + image_paths[i]
         img = Image.open(read_path)
 
         img = img.resize(TARGET_SHAPE)
         
-        write_path = PATH_FOR_OUR_TRAINING_DATA + "/"+ image_paths[i]
+        write_path = TRAIN_DATA_PATH + "/" + image_paths[i]
         img.save(write_path)
 
 
