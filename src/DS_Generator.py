@@ -7,7 +7,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from util import TRAIN_DATA_PATH, UPPER_LIMIT_OF_IMAGES, BATCH_SIZE, TRAIN_DF, TARGET_SHAPE
+from util import TRAIN_DATA_PATH, UPPER_LIMIT_OF_IMAGES, BATCH_SIZE, TRAIN_INDIVIDUAL_DF, TARGET_SHAPE
 import math
 import random
 
