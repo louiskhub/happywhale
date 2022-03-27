@@ -7,7 +7,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from util import PATH_FOR_OUR_TRAINING_DATA, UPPER_LIMIT_OF_IMAGES, BATCH_SIZE, training_df, TARGET_SHAPE
+from util import TRAIN_DATA_PATH, UPPER_LIMIT_OF_IMAGES, BATCH_SIZE, TRAIN_DF, TARGET_SHAPE
 import math
 import random
 
@@ -199,7 +199,7 @@ class DS_Generator():
         # Create order for the batches
         df = smart_batches(df, batch_size, task)
 
-        image_paths = PATH_FOR_OUR_TRAINING_DATA + "/" + df["image"]
+        image_paths = TRAIN_DATA_PATH + "/" + df["image"]
 
         image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
 
