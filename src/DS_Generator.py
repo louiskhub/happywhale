@@ -326,11 +326,6 @@ class DataSet_Generator():
         # map preprosessing
         ds = ds.map(self.prepare_images_mapping , num_parallel_calls=8)
 
-        if augment:
-            ds = ds.map(self.augment, num_parallel_calls=8)
-
-        ds = ds.batch(batch_size)
-
         if factor_of_validation_ds > 0:
             length = math.floor(factor_of_validation_ds * len(ds))
             val_ds = ds.take(length)
@@ -339,6 +334,16 @@ class DataSet_Generator():
             val_ds = None
             train_ds = ds
             print("No validation set wanted, hence we will return None")
+
+        if augment:
+            train_ds= train_ds.map(self.augment, num_parallel_calls=8)
+
+        train_ds = train_ds.batch(batch_size).prefetch(10)
+        val_ds = val_ds.batch(batch_size).prefetch(10)
+
+        ds = ds.batch(batch_size)
+
+
 
         return train_ds,val_ds
 
