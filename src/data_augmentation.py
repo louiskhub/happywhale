@@ -51,7 +51,7 @@ def extract_foreground(img_path):
         top, bottom, left, right = find_box(edges)
         rec = (left[0], top[1], right[0]-left[0], bottom[1]-top[1])
 
-        return foreground_extraction(org, rec)
+        return cv2.resize(foreground_extraction(org, rec),TARGET_SHAPE)
 
     except:
-        return org
+        return cv2.resize(org,TARGET_SHAPE)
