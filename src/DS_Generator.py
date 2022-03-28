@@ -27,7 +27,7 @@ def df_filter_for_indidum_training(train_df: pd.core.frame.DataFrame) -> pd.core
     return train_df
 
 
-def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "individual") -> pd.core.frame.DataFrame:
+def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "individual", create_val_df = False) -> pd.core.frame.DataFrame:
     """
     This is one of the most important functions:
     -----------------
@@ -35,6 +35,7 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
     df - pandas data frame of our data
     BATCH_SIZE - the bath_sie of our tensorflow dataset, must be even
     task - either "individual_id" or "species", Specifies if we want to create train to identify species or individuals.
+    create_val_df - whether you want some indiviudals to be split up vor validation purposes -> only implemented when task=indivual
     
     -----------------
     returns
@@ -43,6 +44,10 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
     """
     assert task in ["individual",
                     "species"], 'task has to be either "individual_id" or "species"" and must be column index of df'
+
+    if create_val_df:
+        assert task == "individual", "only implemented when task=indivual"
+
     if task == "individual":
         label = "label"
         counts_column = "individum_count"
@@ -51,11 +56,28 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
         label = "species_label"
         counts_column = "species_counts"
     df = df.copy()
+    assert BATCH_SIZE % 2 == 0, "BATCH_SIZE must be even"
 
+    # refresh counts just in case
     df["species_counts"] = df.groupby('species_label')["species_label"].transform('count')
     df['individum_count'] = df.groupby('individual_id')['individual_id'].transform('count')
 
-    assert BATCH_SIZE % 2 == 0, "BATCH_SIZE must be even"
+    if create_val_df:
+        indexes_we_could_remove = list(df[df["individum_count"] > 2].index)
+        random.shuffle(indexes_we_could_remove)
+
+        split_ratio = 0.05
+        cut = int(len(indexes_we_could_remove)*split_ratio)
+        keep_indexes = indexes_we_could_remove[cut:]
+        val_indexes = indexes_we_could_remove[:cut]
+        val_df = df.loc[val_indexes]
+        df = df.loc[keep_indexes]
+
+        # again, redo counts
+        df["species_counts"] = df.groupby('species_label')["species_label"].transform('count')
+        df['individum_count'] = df.groupby('individual_id')['individual_id'].transform('count')
+    else:
+        val_df = None
 
     df["assign_to"] = np.nan
 
@@ -142,132 +164,13 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
 
     assert np.all(container == 0)
 
-    return df.sort_values(["assign_to"])
+    return df.sort_values(["assign_to"]),val_df
 
 
-class DS_Generator():
-    """
-    Class used for dataset generation.
-    
-    Attributes
-    ----------
-    
-    Methods
-    ---------
-    """
-
-    def __init__(self):
-        pass
-
-    def generate(self, df, factor_of_validation_ds=0.1, increase_ds_factor=1, individuals=False, batch_size=None):
-        global TARGET_SHAPE
-        """This function creates the tensorflow dataset for training:
-        -----------------
-        arguments:
-        df - pd.dataframe / Pandas dataframe containing the information for training
-
-        factor_of_validation_ds - float / between 0 and 1 -> Percentage auf validation dataset for splitup.
-            Note: If we split increase the ds size via augmentation, the percentage will only be of the "real" data
-
-        increase_ds_factor - int / either 1,2,3 -> By with factor do you want to increase dataset via augmentaion
-            1 -> keep size, no change
-            2 -> double ds size via augment1 function
-            3 -> triple ds size via augment1 + augment2 function
-
-        individuals - bool / whether you want to try identifying individuals or species
-
-        batch_size - None,int / Batch-size for ds. If none specified -> take the one from utils.py
-
-        -----------------
-        returns:
-        train_ds,val_ds
-        """
-
-        # Asserts for function
-
-        assert 0 <= factor_of_validation_ds <= 1, "Must be percentage"
-        assert increase_ds_factor in [1, 2, 3], "Not supported value"
-
-        if batch_size is None:
-            batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
-            print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
-
-        if individuals:
-            task = "individuals"
-        else:
-            task = "species"
-
-        # Create order for the batches
-        df = smart_batches(df, batch_size, task)
-
-        image_paths = TRAIN_DATA_PATH + "/" + df["image"]
-
-        image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
-
-        # choose the wright labes according to task
-        if individuals:
-            labels = tf.convert_to_tensor(df["label"], dtype=tf.int32)
-        else:
-            labels = tf.convert_to_tensor(df["species_label"], dtype=tf.int32)
-
-        ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
-
-        # map preprosessing
-        ds = ds.map(self.prepare_images_mapping)#, num_parallel_calls=8)
-
-        # split up validation set
-        if factor_of_validation_ds > 0:
-            length = math.floor(factor_of_validation_ds * len(ds))
-            val_ds = ds.take(length)
-            val_ds = val_ds.batch(batch_size)
-            train_ds = ds.skip(length)
-        else:
-            val_ds = None
-            train_ds = ds
-            print("No validation set wanted, hence we will return None")
-
-        if increase_ds_factor == 1:
-            pass
-        elif increase_ds_factor == 2:
-            augmented_ds1 = train_ds.map(self.augment1, num_parallel_calls=8)
-            train_ds = train_ds.concatenate(augmented_ds1)
-        elif increase_ds_factor == 3:
-            augmented_ds1 = train_ds.map(self.augment1, num_parallel_calls=8)
-            augmented_ds2 = train_ds.map(self.augment2, num_parallel_calls=8)
-
-            train_ds = train_ds.concatenate(augmented_ds1)
-            train_ds = train_ds.concatenate(augmented_ds2)
-
-        # Finally, batch train_ds
-        train_ds = train_ds.batch(batch_size)
-
-        return train_ds, val_ds
-
-    def prepare_images_mapping(self, path, label):
-        img = tf.py_function(extract_foreground, [path], tf.uint8)
-        x = tf.convert_to_tensor(img)
-        x = tf.cast(x, dtype=tf.float32)
-        x *= (2 / 255)
-        x -= 1
-        return x, label
-
-    def augment1(self, x, label):
-        x = tf.image.random_crop(x, TARGET_SHAPE + (1,))
-        x = tf.image.resize(x, TARGET_SHAPE) # just in case the input imgs are not resized yet
-        x = tf.image.random_flip_up_down(x)
-        x = tf.image.random_flip_left_right(x)
-        return x, label
-
-    def augment2(self, x, label):
-        x = tf.image.random_contrast(x, 0.2, 0.5)
-        x = tf.image.random_brightness(x, 0.2)
-        x = tf.image.random_flip_up_down(x)
-        x = tf.image.random_flip_left_right(x)
-        return x, label
 
 class DataSet_Generator():
     def __init__(self):
-        self.number_of_classes = None
+        pass
 
     def prepare_images_mapping(self, path, label):
         img = tf.io.read_file(path)
@@ -275,7 +178,6 @@ class DataSet_Generator():
         img = tf.cast(img, tf.float32)
         img *= (2 / 255)
         img -= 1
-        label = tf.one_hot(label, self.number_of_classes)
         return img, label
 
     def augment(self, img, label):
@@ -286,7 +188,7 @@ class DataSet_Generator():
         img = tf.image.random_brightness(img, 0.10)
         return img, label
 
-    def generate(self, df, factor_of_validation_ds=0.1, batch_size=None, augment=False):
+    def generate_species_data(self, df, factor_of_validation_ds=0.1, batch_size=None, augment=False):
         global TARGET_SHAPE
         """This function creates the tensorflow dataset for training:
         -----------------
@@ -312,12 +214,12 @@ class DataSet_Generator():
             batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
             print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
 
-        df = smart_batches(df, batch_size, "species")
+        df, _ = smart_batches(df, batch_size, "species")
 
 
         image_paths = TRAIN_DATA_PATH + "/" + df["image"]
 
-        self.number_of_classes = len(set(df["species_label"]))
+        number_of_classes = len(set(df["species_label"]))
 
         image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
         labels = tf.convert_to_tensor(df["species_label"], dtype=tf.int32)
@@ -326,6 +228,8 @@ class DataSet_Generator():
         # map preprosessing
         ds = ds.map(self.prepare_images_mapping , num_parallel_calls=8)
 
+        #one_hot encode labels
+        ds = ds.map(lambda img,label : (img, tf.one_hot(label, number_of_classes)))
         if factor_of_validation_ds > 0:
             length = math.floor(factor_of_validation_ds * len(ds))
             val_ds = ds.take(length)
@@ -336,14 +240,93 @@ class DataSet_Generator():
             print("No validation set wanted, hence we will return None")
 
         if augment:
-            train_ds= train_ds.map(self.augment, num_parallel_calls=8)
+            train_ds = train_ds.map(self.augment, num_parallel_calls=8)
 
         train_ds = train_ds.batch(batch_size).prefetch(10)
         val_ds = val_ds.batch(batch_size).prefetch(10)
 
         ds = ds.batch(batch_size)
 
-
-
         return train_ds,val_ds
+
+    def generate_individual_data(self, df, increase_ds_factor=1,batch_size=None,with_val_ds=False):
+
+        global TARGET_SHAPE
+        """This function creates the tensorflow dataset for training:
+        -----------------
+        arguments:
+        df - pd.dataframe / Pandas dataframe containing the information for training
+
+        increase_ds_factor - int / either 1,2,3 -> By with factor do you want to increase dataset via augmentaion
+            1 -> keep size, no change
+            2 -> double ds size via augment1 function
+            3 -> triple ds size via augment1 + augment2 function
+
+        batch_size - None,int / Batch-size for ds. If none specified -> take the one from utils.py
+        with_val_ds - Split apart a small ds for accuracy estimations
+        -----------------
+        returns:
+        train_ds,val_ds
+        """
+
+        # Asserts for function
+
+        assert increase_ds_factor in [1, 2, 3], "Not supported value"
+
+        if batch_size is None:
+            batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
+            print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
+
+        # Create order for the batches
+        df, val_df = smart_batches(df, batch_size, "individuals",with_val_ds)
+
+        image_paths = TRAIN_DATA_PATH + "/" + df["image"]
+
+        image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
+
+        labels = tf.convert_to_tensor(df["label"], dtype=tf.int32)
+
+        ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
+
+        # map preprosessing
+        ds = ds.map(self.prepare_images_mapping, num_parallel_calls=8)
+        ds = ds.batch(batch_size)
+
+        if val_df is not None:
+            image_paths = TRAIN_DATA_PATH + "/" + val_df["image"]
+            image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
+            labels = tf.convert_to_tensor(val_df["label"], dtype=tf.int32)
+            val_ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
+            val_ds = val_ds.map(self.prepare_images_mapping, num_parallel_calls=8)
+        else:
+            val_ds = None
+
+        #if increase_ds_factor == 1:
+        #    pass
+        #elif increase_ds_factor == 2:
+        #    augmented_ds1 = ds.map(self.augment1, num_parallel_calls=8)
+        #    train_ds = ds.concatenate(augmented_ds1)
+        #elif increase_ds_factor == 3:
+        #    augmented_ds1 = ds.map(self.augment1, num_parallel_calls=8)
+        #    augmented_ds2 = ds.map(self.augment2, num_parallel_calls=8)#
+#
+ #           train_ds = train_ds.concatenate(augmented_ds1)
+#          train_ds = train_ds.concatenate(augmented_ds2)
+
+        # Finally, batch train_ds
+        return ds,val_ds
+
+    # for now code leichen aber vielleicht später
+    def augment1(self, x, label):
+        x = tf.image.random_crop(x, TARGET_SHAPE + (1,))
+        x = tf.image.random_flip_up_down(x)
+        x = tf.image.random_flip_left_right(x)
+        return x, label
+
+    def augment2(self, x, label):
+        x = tf.image.random_contrast(x, 0.2, 0.5)
+        x = tf.image.random_brightness(x, 0.2)
+        x = tf.image.random_flip_up_down(x)
+        x = tf.image.random_flip_left_right(x)
+        return x, label
 
