@@ -6,13 +6,9 @@ As data source, we use the Dataset from the "Happywhale - Whale and Dolphin Iden
 
 ## Virtual Environment
 
-In order to install all necessary dependencies, please make sure that you have a local [Conda](https://docs.conda.io/en/latest/) distribution (e.g., Anaconda or miniconda) installed. Make sure you have the following packages installen (in a virtual environment or globally):
-```
-scikit-learn=0.24.2
-matplotlib=3.3.4
-pandas=1.1.5
-tensorflow
-```
+In order to install all necessary dependencies, please make sure you have python3 and a local [Conda](https://docs.conda.io/en/latest/) distribution (e.g. anaconda or miniconda) installed.
+
+You can install the necessary dependencies via `pip install -r requirements.txt`.
 
 ## Training the Model
 
