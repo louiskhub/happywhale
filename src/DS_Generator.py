@@ -27,12 +27,13 @@ def df_filter_for_indidum_training(train_df: pd.core.frame.DataFrame) -> pd.core
     return train_df
 
 
-def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "individual", create_val_df = False) -> pd.core.frame.DataFrame:
+def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "individual",seed = None, create_val_df = False) -> pd.core.frame.DataFrame:
     """
     This is one of the most important functions:
     -----------------
     arguments:
     df - pandas data frame of our data
+    seed - to generate same train/val split when reloading model
     BATCH_SIZE - the bath_sie of our tensorflow dataset, must be even
     task - either "individual_id" or "species", Specifies if we want to create train to identify species or individuals.
     create_val_df - whether you want some indiviudals to be split up vor validation purposes -> only implemented when task=indivual
@@ -44,6 +45,9 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
     """
     assert task in ["individual",
                     "species"], 'task has to be either "individual_id" or "species"" and must be column index of df'
+
+    if seed is not None:
+        random.seed(seed)
 
     if create_val_df:
         assert task == "individual", "only implemented when task=indivual"
@@ -188,13 +192,13 @@ class DataSet_Generator():
         img = tf.image.random_brightness(img, 0.10)
         return img, label
 
-    def generate_species_data(self, df, factor_of_validation_ds=0.1, batch_size=None, augment=False):
+    def generate_species_data(self, df, factor_of_validation_ds=0.1, batch_size=None, augment=False,seed=None):
         global TARGET_SHAPE
         """This function creates the tensorflow dataset for training:
         -----------------
         arguments:
         df - pd.dataframe / Pandas dataframe containing the information for training
-
+        seed - to generate same train/val split when reloading model
         factor_of_validation_ds - float / between 0 and 1 -> Percentage auf validation dataset for splitup.
             Note: If we split increase the ds size via augmentation, the percentage will only be of the "real" data
 
@@ -214,7 +218,7 @@ class DataSet_Generator():
             batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
             print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
 
-        df, _ = smart_batches(df, batch_size, "species")
+        df, _ = smart_batches(df, batch_size, task="species",seed=seed,
 
 
         image_paths = TRAIN_DATA_PATH + "/" + df["image"]
@@ -249,14 +253,14 @@ class DataSet_Generator():
 
         return train_ds,val_ds
 
-    def generate_individual_data(self, df, increase_ds_factor=1,batch_size=None,with_val_ds=False):
+    def generate_individual_data(self, df, increase_ds_factor=1,batch_size=None,with_val_ds=False,seed=None):
 
         global TARGET_SHAPE
         """This function creates the tensorflow dataset for training:
         -----------------
         arguments:
         df - pd.dataframe / Pandas dataframe containing the information for training
-
+        seed - to generate same train/val split when reloading model
         increase_ds_factor - int / either 1,2,3 -> By with factor do you want to increase dataset via augmentaion
             1 -> keep size, no change
             2 -> double ds size via augment1 function
@@ -278,7 +282,7 @@ class DataSet_Generator():
             print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
 
         # Create order for the batches
-        df, val_df = smart_batches(df, batch_size, "individuals",with_val_ds)
+        df, val_df = smart_batches(df, batch_size, task="individuals",create_val_df=with_val_ds,seed=seed,)
 
         image_paths = TRAIN_DATA_PATH + "/" + df["image"]
 
