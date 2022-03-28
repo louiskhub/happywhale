@@ -312,6 +312,9 @@ class DataSet_Generator():
             batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
             print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
 
+        df = smart_batches(df, batch_size, "species")
+
+
         image_paths = TRAIN_DATA_PATH + "/" + df["image"]
 
         self.number_of_classes = len(set(df["species_label"]))
@@ -326,7 +329,7 @@ class DataSet_Generator():
         if augment:
             ds = ds.map(self.augment, num_parallel_calls=8)
 
-        ds = ds.shuffle(5000).batch(batch_size)
+        ds = ds.batch(batch_size)
 
         if factor_of_validation_ds > 0:
             length = math.floor(factor_of_validation_ds * len(ds))
