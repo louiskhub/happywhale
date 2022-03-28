@@ -3,7 +3,9 @@ import os.path
 import cv2
 import numpy as np
 import tensorflow as tf
-
+import sys
+sys.path.append("..")
+from util import TARGET_SHAPE, TRAIN_IMG_FOLDER
 
 def find_box(edges):
     # contour masking
@@ -32,8 +34,9 @@ def foreground_extraction(img, rec):
 
 def extract_foreground(img_path):
 
-    img = tf.io.read_file(img_path)
-    img = tf.io.decode_jpeg(img, channels=3).numpy()
+    img = tf.io.read_file( TRAIN_IMG_FOLDER + "/" + img_path)
+    img = tf.io.decode_jpeg(img, channels=3)
+    img = tf.image.resize(img,TARGET_SHAPE).numpy()
     org = img.copy()
 
     img_gray = cv2.cvtColor(np.uint8(img*255), cv2.COLOR_RGB2GRAY)
@@ -51,4 +54,4 @@ def extract_foreground(img_path):
         return foreground_extraction(org, rec)
 
     except:
-        return img_gray
+        return org

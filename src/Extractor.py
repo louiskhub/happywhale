@@ -12,6 +12,9 @@ import pandas as pd
 from tqdm import tqdm
 
 
+
+
+
 def create_our_training_data(TRAIN_IMG_FOLDER, TRAIN_DATA_PATH, TARGET_SHAPE, task="individual"):
 
 

@@ -264,3 +264,79 @@ class DS_Generator():
         x = tf.image.random_flip_up_down(x)
         x = tf.image.random_flip_left_right(x)
         return x, label
+
+class DataSet_Generator():
+    def __init__(self):
+        self.number_of_classes = None
+
+    def prepare_images_mapping(self, path, label):
+        img = tf.io.read_file(path)
+        img = tf.io.decode_jpeg(img, channels=3)
+        img = tf.cast(img, tf.float32)
+        img *= (2 / 255)
+        img -= 1
+        label = tf.one_hot(label, self.number_of_classes)
+        return img, label
+
+    def augment(self, img, label):
+        img = tf.image.random_flip_left_right(img)
+        img = tf.image.random_hue(img, 0.01)
+        img = tf.image.random_saturation(img, 0.70, 1.30)
+        img = tf.image.random_contrast(img, 0.80, 1.20)
+        img = tf.image.random_brightness(img, 0.10)
+        return img, label
+
+    def generate(self, df, factor_of_validation_ds=0.1, batch_size=None, augment=False):
+        global TARGET_SHAPE
+        """This function creates the tensorflow dataset for training:
+        -----------------
+        arguments:
+        df - pd.dataframe / Pandas dataframe containing the information for training
+
+        factor_of_validation_ds - float / between 0 and 1 -> Percentage auf validation dataset for splitup.
+            Note: If we split increase the ds size via augmentation, the percentage will only be of the "real" data
+
+        batch_size - None,int / Batch-size for ds. If none specified -> take the one from utils.py
+        
+        augment - Bool/ wether you want to apply data augmentaion
+        -----------------
+        returns:
+        train_ds,val_ds
+        """
+
+        # Asserts for function
+
+        assert 0 <= factor_of_validation_ds <= 1, "Must be percentage"
+
+        if batch_size is None:
+            batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
+            print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
+
+        image_paths = TRAIN_DATA_PATH + "/" + df["image"]
+
+        self.number_of_classes = len(set(df["species_label"]))
+
+        image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
+        labels = tf.convert_to_tensor(df["species_label"], dtype=tf.int32)
+        ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
+
+        # map preprosessing
+        ds = ds.map(self.prepare_images_mapping , num_parallel_calls=8)
+
+        if augment:
+            ds = ds.map(self.augment, num_parallel_calls=8)
+
+        ds = ds.shuffle(5000).batch(batch_size)
+
+        if factor_of_validation_ds > 0:
+            length = math.floor(factor_of_validation_ds * len(ds))
+            val_ds = ds.take(length)
+            val_ds = val_ds.batch(batch_size)
+            train_ds = ds.skip(length)
+        else:
+            val_ds = None
+            train_ds = ds
+            print("No validation set wanted, hence we will return None")
+
+        return train_ds,val_ds
+

@@ -18,6 +18,8 @@ lib/
 lib64/
 parts/
 sdist/
+models/
+training_information/
 var/
 wheels/
 pip-wheel-metadata/
