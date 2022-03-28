@@ -218,7 +218,7 @@ class DataSet_Generator():
             batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
             print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
 
-        df, _ = smart_batches(df, batch_size, task="species",seed=seed,
+        df, _ = smart_batches(df, batch_size, task="species",seed=seed)
 
 
         image_paths = TRAIN_DATA_PATH + "/" + df["image"]
