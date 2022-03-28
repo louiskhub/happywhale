@@ -331,7 +331,6 @@ class DataSet_Generator():
         if factor_of_validation_ds > 0:
             length = math.floor(factor_of_validation_ds * len(ds))
             val_ds = ds.take(length)
-            val_ds = val_ds.batch(batch_size)
             train_ds = ds.skip(length)
         else:
             val_ds = None
