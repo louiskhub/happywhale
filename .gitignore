@@ -20,6 +20,7 @@ parts/
 sdist/
 models/
 training_information/
+notebooks/old_training_notebooks/
 var/
 wheels/
 pip-wheel-metadata/
