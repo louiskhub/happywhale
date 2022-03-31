@@ -352,12 +352,15 @@ class DS_Generator():
         if augment:
             train_ds = train_ds.map(self.augment, num_parallel_calls=8)
 
+        train_ds = train_ds.batch(batch_size).prefetch(10)
+        val_ds = val_ds.batch(batch_size).prefetch(10)
+
         if not return_eval_data:
             return train_ds, val_ds
         elif return_eval_data:
             return train_ds, val_ds, test_ds, df
 
-    def generate_individual_data(self, df, augment=False, batch_size=None, seed=None, val_split=0.1):
+    def generate_individual_data(self, df, augment=False, batch_size=None, seed=None, val_split=0.1, return_eval_data=False):
         """This function creates the tensorflow dataset for training:
         -----------------
         arguments:
@@ -386,32 +389,19 @@ class DS_Generator():
 
         train_ds = self.build_ds(train_df["image"], train_df["label"])
         if augment:
-            train_ds = train_ds.map(self.augment())
-        train_ds = train_ds.batch(batch_size)
+            train_ds = train_ds.map(self.augment)
+        train_ds = train_ds.batch(batch_size).prefetch(10)
 
         val_ds = self.build_ds(val_df["image"], val_df["label"])
-        val_ds = val_ds.batch(batch_size)
+        val_ds = val_ds.batch(batch_size).prefetch(10)
 
-        return train_ds, val_ds
-
-    # for now code leichen aber vielleicht später
-    def augment1(self, x, label):
-        x = tf.image.random_crop(x, TARGET_SHAPE + (1,))
-        x = tf.image.random_flip_up_down(x)
-        x = tf.image.random_flip_left_right(x)
-        return x, label
-
-    def augment2(self, x, label):
-        x = tf.image.random_contrast(x, 0.2, 0.5)
-        x = tf.image.random_brightness(x, 0.2)
-        x = tf.image.random_flip_up_down(x)
-        x = tf.image.random_flip_left_right(x)
-        return x, label
+        if return_eval_data == False:
+            return train_ds
+        elif return_eval_data:
+            return train_ds, val_ds, train_df, val_df
 
     def build_ds(self, imgage_paths, classes):
-        global TARGET_SHAPE
         image_paths = TRAIN_DATA_PATH + "/" + imgage_paths
-
         image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
         labels = tf.convert_to_tensor(classes, dtype=tf.int32)
         ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
