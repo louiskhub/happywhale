@@ -6,7 +6,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 
 import pandas as pd
 
-
+NUMBER_OF_SPECIES = 30
 ################################################################
 # LOCAL FILEPATHS ##############################################
 ################################################################
@@ -23,6 +23,7 @@ TRAIN_DATA_PATH = "../../OurTrainingData"
 # PREPROCESSING ################################################
 ################################################################
 
+
 TARGET_SHAPE = (224, 224) # because of imagenet
 UPPER_LIMIT_OF_IMAGES = 10  # max. 10 images per individual to reduce overfitting
 
@@ -33,5 +34,7 @@ TRAIN_SPECIES_DF = pd.read_csv(TRAIN_DATA_PATH + "/species_data.csv", index_col=
 ################################################################
 # TRAINING #####################################################
 ################################################################
-
+SPECIES_SEED = 5
+NUMBER_OF_SPECIES = 30
 BATCH_SIZE = 64
+
