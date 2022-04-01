@@ -27,7 +27,7 @@ TRAIN_DATA_PATH = "../../OurTrainingData"
 TARGET_SHAPE = (224, 224) # because of imagenet
 UPPER_LIMIT_OF_IMAGES = 10  # max. 10 images per individual to reduce overfitting
 
-PRELIM_TRAIN_DF = pd.read_csv(TRAIN_CSV)
+#PRELIM_TRAIN_DF = pd.read_csv(TRAIN_CSV)
 TRAIN_INDIVIDUAL_DF = pd.read_csv(TRAIN_DATA_PATH + "/individual_data.csv", index_col=0)
 TRAIN_SPECIES_DF = pd.read_csv(TRAIN_DATA_PATH + "/species_data.csv", index_col=0)
 

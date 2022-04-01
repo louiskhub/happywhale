@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 import tensorflow_datasets as tfds
+import tensorflow as tf
 
 def mean_average_precision(model,train_ds , val_ds):
     embeddings = model.predict(train_ds)

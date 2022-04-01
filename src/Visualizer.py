@@ -5,10 +5,9 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 """
 
 import matplotlib.pyplot as plt
-import cv2
 import os
 import pandas as pd
-from util import PRELIM_TRAIN_DF, TRAIN_IMG_FOLDER
+from util import  TRAIN_IMG_FOLDER
 
 # nice plot funcs
 
