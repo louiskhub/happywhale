@@ -16,3 +16,9 @@ def mean_average_precision(model,train_ds , val_ds):
     predicted_labels = np.array([corresponding_labels[i] for i in closest_embeddings_indices])
 
     return np.mean(predicted_labels == val_labels)
+
+def compute_closest_k_neighbors(a,b,k=3):
+  pairwise_dis = cdist(a,b)
+  vals , indeces = tf.nn.top_k(tf.math.negative(pairwise_dis),k)
+  vals = tf.math.negative(vals)
+  return vals,indeces
