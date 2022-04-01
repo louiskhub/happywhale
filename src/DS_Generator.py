@@ -407,3 +407,7 @@ class DS_Generator():
         ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
         ds = ds.map(self.prepare_images_mapping, num_parallel_calls=8)
         return ds
+
+    def generate_single_individuals_ds(self,df,batch_size):
+        df = df[df["individum_count"]==1]
+        return self.build_ds(df["image"], df["label"]).batch(batch_size).prefetch(10), df
