@@ -107,7 +107,7 @@ def create_triplet_eval(model,train_ds,val_ds,train_df,val_df,new_whales_ds,new_
          + p9.ggtitle(f"Distance to next neighbor,means: old: {mean_old}, new: {mean_new}"))
     p.save(filename=path_to_save + "distances_to_next_whale_density.png", height=5, width=5, units='in', dpi=1000)
 
-    names = list(val_df["species"].unique())
+    names = [nicer_classes(n) for n in list(val_df["species"].unique())]
     data = [calculate_class_accuracy(species, val_df) for species in names]
     acc = [data[i][0] for i in range(len(data))]
     spec_acc = [data[i][1] for i in range(len(data))]
