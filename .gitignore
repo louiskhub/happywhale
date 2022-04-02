@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# R
+.Rhistory
+
 # Distribution / packaging
 .Python
 build/
@@ -20,7 +23,6 @@ parts/
 sdist/
 models/
 training_information/
-notebooks/old_training_notebooks/
 imgs/
 notebooks/
 var/
@@ -138,5 +140,3 @@ dmypy.json
 
 # TF Model ckpts
 ckpts/weights/
-/notebooks/
-/notebooks/
