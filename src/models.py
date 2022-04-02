@@ -1,13 +1,9 @@
-import sys
-
-sys.path.append("..")
-sys.path.append("../src")
 import tensorflow as tf
-from util import TRAIN_SPECIES_DF, INDIVIDUMS_SEED
+from util import SAVING_PATH 
 import tensorflow_addons as tfa
 import os
 
-SOFT_MAX_MODEL_PATH = "../Saved Models/inception_v3_max_pooling_imagenet_weights"
+SOFT_MAX_MODEL_PATH = "Saved Models/inception_v3_max_pooling_imagenet_weights"
 
 
 def embedding_part(Input):
@@ -30,10 +26,10 @@ def load_weights_and_compile(model, load_weights_path):
         optimizer=tf.keras.optimizers.Adam(0.001),
         loss=tfa.losses.TripletSemiHardLoss())
 
-    if model.name not in os.listdir("../../models/"):
-        os.makedirs("../../models/" + model.name)
-        os.makedirs("../../models/" + model.name + "/logs")
-        os.makedirs("../../models/" + model.name + "/saves")
+    if model.name not in os.listdir(SAVING_PATH ):
+        os.makedirs(SAVING_PATH + model.name)
+        os.makedirs(SAVING_PATH + model.name + "/logs")
+        os.makedirs(SAVING_PATH + model.name + "/saves")
     return model
 
 

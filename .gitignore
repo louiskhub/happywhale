@@ -22,6 +22,7 @@ models/
 training_information/
 notebooks/old_training_notebooks/
 var/
+imgs/
 wheels/
 pip-wheel-metadata/
 share/python-wheels/
@@ -136,3 +137,4 @@ dmypy.json
 
 # TF Model ckpts
 ckpts/weights/
+/notebooks/
