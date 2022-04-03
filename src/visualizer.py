@@ -1,7 +1,6 @@
 """
-Script to define all functions for Visualizations.
-
-Louis Kapp, Felix Hammer, Yannik Ullrich
+All functions for Visualizations.
+@authors: fhammer, lkapp
 """
 
 import matplotlib.pyplot as plt
@@ -29,9 +28,6 @@ def get_class_distribution(df, count_barrier=None):
 
 
 def plot_original(prelim_df):
-    """
-    
-    """
     fig, ax = plt.subplots(2, 5, figsize=(40, 20))
 
     for i, img in enumerate(prelim_df.loc[:9, "image"]):

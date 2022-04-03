@@ -1,3 +1,8 @@
+"""
+All functions evaluation of triplet loss models.
+@authors: fhammer, lkapp
+"""
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt

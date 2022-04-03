@@ -12,16 +12,39 @@ import random
 
 
 def redo_counts(df):
+    """
+    Append count-columns for individuals and species to dataframe.
+    -----------------
+    arguments:
+    df - pandas.DataFrame which needs the counts
+    -----------------
+    returns:
+    df - pandas.DataFrame which has the counts
+    """
+
     df = df.copy()
     df["species_counts"] = df.groupby('species_label')["species_label"].transform('count')
     df['individual_counts'] = df.groupby('individual_id')['individual_id'].transform('count')
-    return df
+    return df  # I got what u need
 
 
-def triplet_loss_val_split(df, split_ratio, seed):
-    # We only want to take away individums with more then 2 images,so we still can use them for triplet-loss training
+def triplet_loss_val_split(df, val_split_ratio, seed):
+    """
+    Splits the dataset into training and validation if val_split_ratio != 0.
+    -----------------
+    arguments:
+    df - pandas.DataFrame which needs to be split
+    val_split_ratio - Ratio of the validation set
+    seed - seed for reproducible results
+    -----------------
+    returns:
+    Train and Validation pandas.DataFrame if val_split_ratio != 0. Otherwise only Train DataFrame.
+    """
 
-    if split_ratio:
+    if val_split_ratio:
+        
+        # We only want to take away individuals with more than 2 images
+        # this way we still can use them for triplet-loss training
         values_with_more_then_2_instances_df = df[df["individual_counts"] > 2]
         values_with_2_instances_df = df[df["individual_counts"] == 2]
 
@@ -41,15 +64,15 @@ def triplet_loss_val_split(df, split_ratio, seed):
             indexes_we_cant_remove.extend(to_keep)
             indexes_we_could_remove.extend(to_remove)
 
-        # for every class throw away two training data
+        # for every class throw away two training data points
 
-        # seed for replicability
+        # seed for reproducibility
         random.seed(seed)
         # shuffle indexes for randomness
         random.shuffle(indexes_we_could_remove)
 
         # get cut length
-        cut = math.ceil(len(indexes_we_could_remove) * split_ratio)
+        cut = math.ceil(len(indexes_we_could_remove) * val_split_ratio)
         # indexes we want to keep
         keep_indexes = indexes_we_could_remove[cut:] + indexes_we_cant_remove
         # indexes for val ds
@@ -68,7 +91,23 @@ def triplet_loss_val_split(df, split_ratio, seed):
         return df, None
 
 
-def split_df_by_even_uneven(train_df, counts_column, label):
+def split_df_by_even_uneven(train_df, counts_column, label_column):
+    """
+    Split pandas.DataFrame into species/individuals with an even number of images 
+    and species/individuals with an uneven number of images.
+    -----------------
+    arguments:
+    train_df - pandas.DataFrame to be split
+    counts_column - column which contains the interesting counts (species/individual)
+    label_column - colum which contains the interesting labels (species/individual)
+    -----------------
+    returns:
+    1. pandas.DataFrame containing all even species/individuals
+    2. pandas.DataFrame containing all uneven species/individuals
+    3. List containing all indices of even species/individuals
+    4. Set containing all uneven species/individuals
+    """
+
     # redo counts
     train_df = redo_counts(train_df)
     # split
@@ -77,50 +116,60 @@ def split_df_by_even_uneven(train_df, counts_column, label):
     # get the indexes of the data-points with even/ uneven occurrences
     even_indices_list = list(even_df.index)
     # get the set of uneven classes
-    set_of_uneven_classes = {a for a in uneven_df[label]}
+    set_of_uneven_classes = {a for a in uneven_df[label_column]}
+    
     return even_df, uneven_df, even_indices_list, set_of_uneven_classes
 
 
-def shuffle_container_order(train_df, amount_of_containers):
-    """ This part is primarily for a good train,test,val split for our species data, in such a way that every dataset contains instances of all species.
-    To achieve this more often we shuffle the order of containers:"""
+def shuffle_batches_order(train_df, number_of_batches):
+    """
+    Ensure a good train, validation and test split for our species data.
+    In such a way that every dataset contains instances of all species.
+    -----------------
+    arguments:
+    train_df - pandas.DataFrame for training
+    number_of_batches - number of batches
+    -----------------
+    returns:
+    pandas.DataFrame for training with shuffled batches
+    """
 
     train_df = train_df.copy()
 
-    last_container = amount_of_containers  # We do not want to shuffle the last one
-    list_to_shuffle = list(range(0, amount_of_containers - 1))  # hence, the minus 1
+    last_container = number_of_batches  # We do not want to shuffle the last one
+    list_to_shuffle = list(range(0, number_of_batches - 1))  # hence, the minus 1
     random.shuffle(list_to_shuffle)
     list_to_shuffle.append(last_container - 1)  # append the last container
 
     # reassign order
     train_df["assign_to"] = np.array([list_to_shuffle[int(i - 1)] for i in train_df["assign_to"]])
+    
     return train_df
-
-
-is_even = lambda x: x % 2 == 0
 
 
 def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "individual", seed=0,
                   val_split=0.1) -> pd.core.frame.DataFrame:
     """
-    This is one of the most important functions:
+    smart batch generation for SemiHardTripletLoss
     -----------------
     arguments:
-    df - pandas data frame of our data
-    seed - to generate same train/val split when reloading model
-    batch_size - the bath_sie of our tensorflow dataset, must be even
-    task - either "individual_id" or "species", Specifies if we want to create train to identify species or individuals.
-    val_split - whether you want some indiviudals to be split up vor validation purposes -> only implemented when task=indivual
-    
+    df - pandas.DataFrame of our data
+    batch_size - the batch size of our tensorflow dataset (must be even)
+    seed - get reproducible results
+    task - either "individual" or "species"
+    val_split - validation split (only implemented when task=individual)
+
     -----------------
     returns
-    Ordered Data Frame for Tensorflow Data set creation, such that the batches are valid for the triplet loss,
-    i.e. never contains only one positve.
+    Ordered pandas.DataFrame for Tensorflow Data set creation.
+    Ensures that the batches are valid for the triplet loss.
+    (i.e. never contain only one positive)
     """
+
     assert task in ["individual",
                     "species"], 'task has to be either "individual_id" or "species"" and must be column index of df'
 
-    assert is_even(batch_size), "BATCH_SIZE must be even"
+    assert util.IS_EVEN(batch_size), "BATCH_SIZE must be even"
 
     # refresh counts just in case
     df = redo_counts(df)
@@ -139,9 +188,9 @@ def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "ind
 
     # now we start working on the constraint problem
     # first we need to know the amount of containers
-    amount_of_containers = math.ceil(len(train_df) / batch_size)
+    amount_of_batches = math.ceil(len(train_df) / batch_size)
     # then we make a numpy array, which holds for every container the amount of space
-    container = np.zeros(amount_of_containers)
+    container = np.zeros(amount_of_batches)
     container[:-1] = batch_size
     # the last container has just the amount of data-points which are missing
 
@@ -154,7 +203,8 @@ def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "ind
     train_df["assign_to"] = np.nan
 
     # get dfs containing even/uneven values + indices of even datapoints + the set of uneven classes
-    even_df, uneven_df, even_indices_list, set_of_uneven_classes = split_df_by_even_uneven(train_df, counts_column,
+    even_df, uneven_df, even_indices_list, set_of_uneven_classes = split_df_by_even_uneven(train_df,
+                                                                                           counts_column,
                                                                                            label)
 
     # make a dict with uneven_labels as keys and a empty list as value
@@ -183,13 +233,14 @@ def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "ind
     random.shuffle(uneven_indices_list)
 
     # Now we have a delicate last problem
-    # if we have an even amount of uneven classes and an even amount of space in the last container we do not have a problem
-    if is_even(len(uneven_indices_list)) and is_even(container[-1]):
+    # if we have an even amount of uneven classes and an even amount of space in the last container
+    # we do not have a problem
+    if util.IS_EVEN(len(uneven_indices_list)) and util.IS_EVEN(container[-1]):
         pass
 
     # If we have an uneven amount of uneven classes and even amount of space in the last container
     # we just put a triplet in to the last container to make everything even
-    elif not is_even(len(uneven_indices_list)) and not is_even(container[-1]):
+    elif not util.IS_EVEN(len(uneven_indices_list)) and not util.IS_EVEN(container[-1]):
         # we put 3 items in -> 3 space less
         container[-1] -= 3
         # get the first triplet
@@ -202,19 +253,20 @@ def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "ind
         raise NameError('We made an error in the concept of the algorithm')
 
     # Now we should have only an even amount of triplet pairs
-    assert is_even(len(uneven_indices_list)), "stf went horribly wrong"
-    assert is_even(len(even_indices_list)), "stf went horribly wrong"
+    assert util.IS_EVEN(len(uneven_indices_list)), "stf went horribly wrong"
+    assert util.IS_EVEN(len(even_indices_list)), "stf went horribly wrong"
 
     # because it is even we now can generate the pairs 3+3 = 6 nicely by zipping + clever indexing
     combined_double_triplets = [a + b for a, b in zip(uneven_indices_list[::2], uneven_indices_list[1::2])]
 
     assert all([len(a) == 6 for a in combined_double_triplets])
 
-    # beacause we assigned the some members of the uneven set to the even_indices_list we have to redo our even_df
+    # because we assigned the same members of the uneven set to the even_indices_list we have to redo our even_df
     even_df = train_df.loc[even_indices_list]
 
     # no we want to form the double pairs
-    # to to this we sort by label to then apply clever indexing (we can do this because we know that every label is represented an even amount of times in the df
+    # to do this we sort by label to then apply clever indexing
+    # (we can do this because we know that every label is represented an even amount of times in the df)
     even_labels = even_df[label].sort_values().index
     # create pairs by indexing + zipping
     combined_even_doubles = [[a, b] for a, b in zip(even_labels[::2], even_labels[1::2])]
@@ -263,9 +315,10 @@ def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "ind
     # all containers should be empty now
     assert np.all(container == 0)
 
-    # This part is primarily for a good train,test,val split for our species data, in such a way that every dataset contains instances of all species
+    # This part is primarily for a good train, test,val split for our species data,
+    # in such a way that every dataset contains instances of all species
     # We shuffle the order of containers
-    train_df = shuffle_container_order(train_df, amount_of_containers)
+    train_df = shuffle_batches_order(train_df, amount_of_batches)
 
     # By sorting by the assignment-order we now achieve the good ordering for correct batches
     train_df = train_df.sort_values(["assign_to"])
@@ -277,10 +330,22 @@ def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "ind
 
 
 class DS_Generator():
+    """ The class to be called for dataset generation. """
+
     def __init__(self):
         pass
 
     def prepare_images_mapping(self, path, label):
+        """
+        basic preprocessing and normalization steps
+        -----------------
+        arguments:
+        path - absolute filepath of the image to be read
+        label - label of the image to be read
+        -----------------
+        returns
+        Preprocessed image and its label.
+        """
         img = tf.io.read_file(path)
         img = tf.io.decode_jpeg(img, channels=3)
         img = tf.cast(img, tf.float32)
@@ -289,6 +354,17 @@ class DS_Generator():
         return img, label
 
     def augment(self, img, label):
+        """
+        Basic randomized data augmentation steps.
+        This function is seperated because we only want to augment our training data and not test/validation data.
+        -----------------
+        arguments:
+        img - image to be augmented
+        label - label of the image to be augmented
+        -----------------
+        returns
+        Augmented image and its label.
+        """
         img = tf.image.random_flip_left_right(img)
         img = tf.image.random_hue(img, 0.01)
         img = tf.image.random_saturation(img, 0.70, 1.30)
@@ -298,22 +374,20 @@ class DS_Generator():
 
     def generate_species_data(self, df, factor_of_validation_ds=0.1, factor_of_test_ds=0.1, batch_size=None,
                               augment=False, seed=None, return_eval_data=False):
-        """This function creates the tensorflow dataset for training:
+        """
+        This function creates the tensorflow dataset for training on species.
         -----------------
         arguments:
         df - pd.dataframe / Pandas dataframe containing the information for training
-        seed - to generate same train/val split when reloading model
         factor_of_validation_ds - float / between 0 and 1 -> Percentage auf validation dataset for splitup.
-            Note: If we split increase the ds size via augmentation, the percentage will only be of the "real" data
-
-        
+        factor_of_test_ds - float / between 0 and 1 -> Percentage auf test dataset for splitup.
         batch_size - None,int / Batch-size for ds. If none specified -> take the one from utils.py
-        
-        augment - Bool/ wether you want to apply data augmentaion
+        augment - Bool/ whether you want to apply data augmentation
+        seed - to generate same train/val split when reloading model
         return_eval_data - whether to return data for evaluation (test_ds + df)
         -----------------
         returns:
-        train_ds,val_ds
+        Training and Validation Dataset.
         """
 
         # Asserts for function
@@ -358,24 +432,20 @@ class DS_Generator():
 
     def generate_individual_data(self, df, augment=False, batch_size=None, seed=None, val_split=0.1,
                                  return_eval_data=False):
-        """This function creates the tensorflow dataset for training:
+        """
+        This function creates the tensorflow dataset for training on individuals.
         -----------------
         arguments:
         df - pd.dataframe / Pandas dataframe containing the information for training
-        seed - to generate same train/val split when reloading model
-        increase_ds_factor - int / either 1,2,3 -> By with factor do you want to increase dataset via augmentaion
-            1 -> keep size, no change
-            2 -> double ds size via augment1 function
-            3 -> triple ds size via augment1 + augment2 function
-
+        augment - Bool/ whether you want to apply data augmentation
         batch_size - None,int / Batch-size for ds. If none specified -> take the one from utils.py
-        with_val_ds - Split apart a small ds for accuracy estimations
+        seed - to generate same train/val split when reloading model
+        val_split - Split apart a small ds for accuracy estimations
+        return_eval_data - whether to return data for evaluation (test_ds + df)
         -----------------
         returns:
-        train_ds,val_ds
+        Training and Validation Dataset.
         """
-
-        # Asserts for function
 
         if batch_size is None:
             batch_size = util.BATCH_SIZE  # if no batch size specified, we take the one from utils.py
@@ -392,22 +462,56 @@ class DS_Generator():
         val_ds = self.build_ds(val_df["image"], val_df["label"])
         val_ds = val_ds.batch(batch_size).prefetch(10)
 
-        if return_eval_data == False:
+        if not return_eval_data:
             return train_ds
         elif return_eval_data:
             return train_ds, val_ds, train_df, val_df
 
-    def build_ds(self, imgage_paths, classes):
-        image_paths = util.TRAIN_DATA_PATH + "/" + imgage_paths
+    def build_ds(self, image_paths, labels):
+        """
+        Build the final dataset.
+        -----------------
+        arguments:
+        image_paths - filepath to resized images
+        labels - (species) labels
+        -----------------
+        returns:
+        Dataset
+        """
+
+        image_paths = util.TRAIN_DATA_PATH + "/" + image_paths
         image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
-        labels = tf.convert_to_tensor(classes, dtype=tf.int32)
+        labels = tf.convert_to_tensor(labels, dtype=tf.int32)
         ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
         ds = ds.map(self.prepare_images_mapping, num_parallel_calls=8)
+
         return ds
 
     def generate_single_individuals_ds(self, df, batch_size):
+        """
+        Build dataset which also contains individuals with only one image.
+        -----------------
+        arguments:
+        df - pandas.DataFrame with all images
+        batch_size - batch size
+        -----------------
+        returns:
+        Dataset and dedicated pandas.DataFrame.
+        """
+
         df = df[df["individual_counts"] == 1]
-        return self.return_plain_ds(df,batch_size)  , df
+
+        return self.return_plain_ds(df, batch_size), df
 
     def return_plain_ds(self, df, batch_size):
+        """
+        Build dataset.
+        -----------------
+        arguments:
+        df - pandas.DataFrame with all images
+        batch_size - batch size
+        -----------------
+        returns:
+        Dataset
+        """
         return self.build_ds(df["image"], df["label"]).batch(batch_size).prefetch(10)

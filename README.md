@@ -10,8 +10,10 @@ In order to install all necessary dependencies, please make sure you have python
 
 You can install the necessary dependencies via `pip install -r requirements.txt`.
 
-## Training the Model
+## Getting the Data
 
-If you want to train the model, run the training.ipynb script. As well as training the model it shows some visualizations of the progress the model makes. 
+https://drive.google.com/drive/folders/1SN__44h9bDxHrDB94WSeSGEDaxx3ISyo
+
+## Training the Model
 
 Append happywhale to your PYTHONPATH!!
