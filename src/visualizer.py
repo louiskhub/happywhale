@@ -6,8 +6,10 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 
 import matplotlib.pyplot as plt
 import os
-import pandas as pd
-from util import TRAIN_IMG_FOLDER
+import tensorflow_datasets as tfds
+from .. import util
+import numpy as np
+import cv2
 
 
 # nice plot funcs
@@ -26,77 +28,71 @@ def get_class_distribution(df, count_barrier=None):
     return {name: val for name, val in zip(counts.index, counts.values)}
 
 
-def insert_missing_class(new_dis, org_dis):
-    for species in org_dis:
-        if species not in new_dis:
-            print
-            new_dis[species] = 0
-    return new_dis
-
-
-def get_distributions(org_df, train_df, val_df, cut_of_val=None):
-    org_dis, train_dis, val_dis = [get_class_distribution(x, cut_of_val) for x in [org_df, train_df, val_df]]
-    train_dis, val_dis = [insert_missing_class(x, org_dis) for x in [train_dis, val_dis]]
-
-    return org_dis, train_dis, val_dis
-
-
-def plot_class_bars(org_df, train_df, val_df, cut_of_val=None):
-    org_dis, train_dis, val_dis = get_distributions(org_df, train_df, val_df, cut_of_val=None)
-
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.bar(org_dis.keys(), org_dis.values(), label="Original class distribution", fill=False, edgecolor='green')
-    ax.bar(val_dis.keys(), val_dis.values(), label="Validation class distribution", fill=False, edgecolor='blue')
-    ax.bar(train_dis.keys(), train_dis.values(), label="Train class distribution", fill=False, edgecolor='red')
-    plt.legend()
-    plt.xticks(rotation='vertical')
-    plt.show()
-
-
-def plot_class_barh(org_df, train_df, val_df, cut_of_val=None):
-    org_dis, train_dis, val_dis = get_distributions(org_df, train_df, val_df, cut_of_val=None)
-
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.barh(list(org_dis.keys()), org_dis.values(), label="Original class distribution", fill=False, edgecolor='green')
-    ax.barh(list(val_dis.keys()), val_dis.values(), label="Validation class distribution", fill=False, edgecolor='blue')
-    ax.barh(list(train_dis.keys()), train_dis.values(), label="Train class distribution", fill=False, edgecolor='red')
-    plt.legend()
-    plt.xticks(rotation=0)
-    plt.tick_params(axis='y', labelsize=13)
-    plt.tick_params(axis='x', labelsize=13)
-    plt.ylabel('Whale Species', fontsize=16)
-    plt.xlabel('Counts', fontsize=16)
-    plt.show()
-
-
-def plot_relative_diffs(rel_train_difs, rel_val_difs, rel_test_difs, whale_index):
-    fig, ax = plt.subplots(figsize=(14, 10))
-    ax.barh(whale_index, rel_train_difs, label="Relative Training Proportions", fill=False,
-            edgecolor='orange')
-    ax.barh(whale_index, rel_val_difs, label="Relative Training Proportions", fill=False,
-            edgecolor='yellowgreen')
-    ax.barh(whale_index, rel_test_difs, label="Relative Val Proportions", fill=False, edgecolor='cyan')
-
-    plt.legend()
-    plt.xticks(rotation=0)
-    plt.tick_params(axis='y', labelsize=13)
-    plt.tick_params(axis='x', labelsize=13)
-    plt.ylabel('Whale Species', fontsize=16)
-    plt.xlabel('Counts', fontsize=16)
-    plt.show()
-
-
-def plot_original():
+def plot_original(prelim_df):
     """
     
     """
     fig, ax = plt.subplots(2, 5, figsize=(40, 20))
 
-    for i, img in enumerate(PRELIM_TRAIN_DF.loc[:9, "image"]):
-        image = plt.imread(os.path.join(TRAIN_IMG_FOLDER, img))
+    for i, img in enumerate(prelim_df.loc[:9, "image"]):
+        image = plt.imread(os.path.join(util.TRAIN_IMG_FOLDER, img))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        ax[i // 5, i % 5].set_title(PRELIM_TRAIN_DF.iloc[i, 2])
+        ax[i // 5, i % 5].set_title(prelim_df.iloc[i, 2])
         ax[i // 5, i % 5].imshow(image)
 
     plt.tight_layout()
+    plt.show()
+
+
+def eval_soft_max_plot_test_whales(test_ds, best_3_indices, best_3_vals, columns=3, rows=40):
+    fig = plt.figure(figsize=(20, 160))
+    for i, (img, label, name) in enumerate(tfds.as_numpy(test_ds.take(columns * rows))):
+        # for every row/column
+        # check wether result was corect or in top 3
+        if label == best_3_indices[i, 0]:
+            certainty = str(int(100 * np.round(best_3_vals[i, 0], 2)))
+            result = f"Correct with {certainty}%"
+        elif label in best_3_indices[i]:
+            pos = np.argwhere(label == best_3_indices[i])[0][0]
+            result = f"False, {pos + 1} position"
+
+        else:
+            result = "Not in best 3"
+
+        # plot images
+        img = img
+        labels = labels
+        img += 1
+        img /= 2
+        fig.add_subplot(rows, columns, i + 1)
+        plt.imshow(img)
+        name = name.decode("utf-8")
+        plt.title(f"{name} - {result}")
+        plt.axis("off")
+    plt.show()
+
+
+def eval_soft_max_plot_acc_by_class(test_df, best_3_indices, best_3_vals):
+    # calculate the accs by class
+    class_acc, class_top3_acc, class_freq = {}, {}, {}
+    for species in test_df["species"].unique():
+        name = nicer_classes(species)
+        df = test_df[test_df["species"] == species]
+        species_label = df["species_label"].iloc[0]
+        class_acc[name] = np.round(np.mean(best_3_indices[df.index.tolist(), 0] == species_label), 2)
+        class_top3_acc[name] = np.round(np.mean([species_label in arr for arr in best_3_indices[df.index.tolist()]]), 2)
+        class_freq[name] = np.round(len(df) / len(test_df), 2)
+
+    # plot them
+    names = list(class_acc.keys())
+    fig = plt.figure(figsize=(14, 14))
+    plt.barh(names, class_top3_acc.values())
+    plt.barh(names, class_acc.values())
+    plt.barh(names, class_freq.values())
+    plt.title("Accuracy by class")
+    plt.xticks(rotation=0)
+    plt.tick_params(axis='y', labelsize=13)
+    plt.tick_params(axis='x', labelsize=13)
+    plt.ylabel('Whale Species', fontsize=16)
+    plt.xlabel('Counts', fontsize=16)
     plt.show()

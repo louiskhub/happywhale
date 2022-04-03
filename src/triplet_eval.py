@@ -1,21 +1,20 @@
-import sys
-sys.path.append("..")
-sys.path.append("../src")
-from src import DS_Generator
 import tensorflow as tf
-import matplotlib.pyplot as plt
-from util import TRAIN_SPECIES_DF,TRAIN_DATA_PATH, INDIVIDUMS_SEED
-import os
+from .. import util
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
-from src.model_evaluation import compute_closest_k_neighbors
-import tensorflow_datasets as tfds
 import seaborn as sns
-from src.Visualizer import nicer_classes
+from visualizer import nicer_classes
 import plotnine as p9
 import pandas as pd
+from scipy.spatial.distance import cdist
+import umap
 
+
+def compute_closest_k_neighbors(a,b,k=3):
+  pairwise_dis = cdist(a,b)
+  vals , indeces = tf.nn.top_k(tf.math.negative(pairwise_dis),k)
+  vals = tf.math.negative(vals)
+  return vals,indeces
 
 def k_accuracy(train_df, val_df, k, closest_k_indices, indivums=True, return_mean=True):
     assert closest_k_indices.shape[1] >= k

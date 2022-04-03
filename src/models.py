@@ -1,5 +1,5 @@
 import tensorflow as tf
-from util import SAVING_PATH 
+from .. import util
 import tensorflow_addons as tfa
 import os
 
@@ -26,10 +26,10 @@ def load_weights_and_compile(model, load_weights_path):
         optimizer=tf.keras.optimizers.Adam(0.001),
         loss=tfa.losses.TripletSemiHardLoss())
 
-    if model.name not in os.listdir(SAVING_PATH ):
-        os.makedirs(SAVING_PATH + model.name)
-        os.makedirs(SAVING_PATH + model.name + "/logs")
-        os.makedirs(SAVING_PATH + model.name + "/saves")
+    if model.name not in os.listdir(util.SAVING_PATH):
+        os.makedirs(util.SAVING_PATH + model.name)
+        os.makedirs(util.SAVING_PATH + model.name + "/logs")
+        os.makedirs(util.SAVING_PATH + model.name + "/saves")
     return model
 
 

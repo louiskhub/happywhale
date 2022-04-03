@@ -7,7 +7,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from util import TRAIN_DATA_PATH, BATCH_SIZE, TARGET_SHAPE, NUMBER_OF_SPECIES
+from .. import util
 import math
 import random
 
@@ -101,7 +101,7 @@ def shuffle_container_order(train_df, amount_of_containers):
 is_even = lambda x: x % 2 == 0
 
 
-def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "individual", seed=0,
+def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "individual", seed=0,
                   val_split=0.1) -> pd.core.frame.DataFrame:
     """
     This is one of the most important functions:
@@ -109,7 +109,7 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
     arguments:
     df - pandas data frame of our data
     seed - to generate same train/val split when reloading model
-    BATCH_SIZE - the bath_sie of our tensorflow dataset, must be even
+    batch_size - the bath_sie of our tensorflow dataset, must be even
     task - either "individual_id" or "species", Specifies if we want to create train to identify species or individuals.
     val_split - whether you want some indiviudals to be split up vor validation purposes -> only implemented when task=indivual
     
@@ -121,7 +121,7 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
     assert task in ["individual",
                     "species"], 'task has to be either "individual_id" or "species"" and must be column index of df'
 
-    assert is_even(BATCH_SIZE), "BATCH_SIZE must be even"
+    assert is_even(batch_size), "BATCH_SIZE must be even"
 
     # refresh counts just in case
     df = redo_counts(df)
@@ -140,13 +140,13 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
 
     # now we start working on the constraint problem
     # first we need to know the amount of containers
-    amount_of_containers = math.ceil(len(train_df) / BATCH_SIZE)
+    amount_of_containers = math.ceil(len(train_df) / batch_size)
     # then we make a numpy array, which holds for every container the amount of space
     container = np.zeros(amount_of_containers)
-    container[:-1] = BATCH_SIZE
+    container[:-1] = batch_size
     # the last container has just the amount of data-points which are missing
 
-    container[-1] = len(train_df) % BATCH_SIZE
+    container[-1] = len(train_df) % batch_size
     # assert that the last container has at least 2 places
     assert container[-1] >= 2, "A very unlikely case happened, try a val_split which is just a bit different or in " \
                                "case of species remove 2 random data-points from your df "
@@ -202,14 +202,12 @@ def smart_batches(df: pd.core.frame.DataFrame, BATCH_SIZE: int, task: str = "ind
     else:
         raise NameError('We made an error in the concept of the algorithm')
 
-
     # Now we should have only an even amount of triplet pairs
     assert is_even(len(uneven_indices_list)), "stf went horribly wrong"
     assert is_even(len(even_indices_list)), "stf went horribly wrong"
 
     # because it is even we now can generate the pairs 3+3 = 6 nicely by zipping + clever indexing
     combined_double_triplets = [a + b for a, b in zip(uneven_indices_list[::2], uneven_indices_list[1::2])]
-
 
     assert all([len(a) == 6 for a in combined_double_triplets])
 
@@ -301,7 +299,6 @@ class DS_Generator():
 
     def generate_species_data(self, df, factor_of_validation_ds=0.1, factor_of_test_ds=0.1, batch_size=None,
                               augment=False, seed=None, return_eval_data=False):
-        global NUMBER_OF_SPECIES
         """This function creates the tensorflow dataset for training:
         -----------------
         arguments:
@@ -326,7 +323,7 @@ class DS_Generator():
         assert 0 <= factor_of_test_ds <= 1, "Must be percentage"
 
         if batch_size is None:
-            batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
+            batch_size = util.BATCH_SIZE  # if no batch size specified, we take the one from utils.py
             print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
 
         df = smart_batches(df, batch_size, task="species", seed=seed)
@@ -334,7 +331,7 @@ class DS_Generator():
         ds = self.build_ds(df["image"], df["species_label"])
 
         # one_hot encode labels
-        ds = ds.map(lambda img, label: (img, tf.one_hot(label, NUMBER_OF_SPECIES)))
+        ds = ds.map(lambda img, label: (img, tf.one_hot(label, util.NUMBER_OF_SPECIES)))
 
         df["which_set"] = "new_column"
 
@@ -360,7 +357,8 @@ class DS_Generator():
         elif return_eval_data:
             return train_ds, val_ds, test_ds, df
 
-    def generate_individual_data(self, df, augment=False, batch_size=None, seed=None, val_split=0.1, return_eval_data=False):
+    def generate_individual_data(self, df, augment=False, batch_size=None, seed=None, val_split=0.1,
+                                 return_eval_data=False):
         """This function creates the tensorflow dataset for training:
         -----------------
         arguments:
@@ -381,7 +379,7 @@ class DS_Generator():
         # Asserts for function
 
         if batch_size is None:
-            batch_size = BATCH_SIZE  # if no batch size specified, we take the one from utils.py
+            batch_size = util.BATCH_SIZE  # if no batch size specified, we take the one from utils.py
             print(f"Since none Batch-size was specified we, took the {batch_size} specified in utils.py")
 
         # Create order for the batches
@@ -401,13 +399,36 @@ class DS_Generator():
             return train_ds, val_ds, train_df, val_df
 
     def build_ds(self, imgage_paths, classes):
-        image_paths = TRAIN_DATA_PATH + "/" + imgage_paths
+        image_paths = util.TRAIN_DATA_PATH + "/" + imgage_paths
         image_paths = tf.convert_to_tensor(image_paths, dtype=tf.string)
         labels = tf.convert_to_tensor(classes, dtype=tf.int32)
         ds = tf.data.Dataset.from_tensor_slices((image_paths, labels))
         ds = ds.map(self.prepare_images_mapping, num_parallel_calls=8)
         return ds
 
-    def generate_single_individuals_ds(self,df,batch_size):
-        df = df[df["individum_count"]==1]
+    def generate_single_individuals_ds(self, df, batch_size):
+        df = df[df["individum_count"] == 1]
         return self.build_ds(df["image"], df["label"]).batch(batch_size).prefetch(10), df
+
+
+def eval_seed(df):
+    split_up_dfs = [df[df["which_set"] == x] for x in ["val_ds", "test_ds", "train_ds"]]
+    number_of_species = [len(set(df["species"])) for df in split_up_dfs]
+    return all([counts == 30 for counts in number_of_species])
+
+
+def find_good_seed(df):
+    seed = 0
+
+    while True:
+        train_ds, val_ds, test_ds, seed_df = DS_Generator().generate_species_data(df, augment=1,
+                                                                                batch_size=64,
+                                                                                factor_of_validation_ds=0.1,
+                                                                                factor_of_test_ds=0.1,
+                                                                                seed=seed,
+                                                                                return_eval_data=True)
+
+        if eval_seed(seed_df ):
+            return seed, seed_df
+        else:
+            seed += 1
