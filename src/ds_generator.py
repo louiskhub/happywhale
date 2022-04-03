@@ -1,7 +1,6 @@
 """
-Creates a Tensorflow dataset and Triplets for the Triplet loss function.
-
-Louis Kapp, Felix Hammer, Yannik Ullrich
+Create a Tensorflow dataset and Triplets for the Triplet loss function.
+@authors: fhammer, lkapp
 """
 
 import tensorflow as tf

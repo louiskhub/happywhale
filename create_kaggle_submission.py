@@ -1,6 +1,6 @@
 """
 Create the submission.csv for the kaggle Happywhale competition.
-@author: fhammer
+@authors: fhammer, lkapp
 """
 
 from src import ds_generator, models

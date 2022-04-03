@@ -1,6 +1,6 @@
 """
 Crop all the images to a certain size to decrease the training data drastically.
-@author: fhammer, lkapp
+@authors: fhammer, lkapp
 """
 
 import tensorflow_datasets as tfds
@@ -21,14 +21,14 @@ df = util.TRAIN_SPECIES_DF
 ds = tf.data.Dataset.from_tensor_slices(df["image"])
 
 
-def mapping_func(path):
+def mapping_func(image_path):
     """
     Function to be mapped on tfds to read+downsize images.
     """
-    img = tf.io.read_file( "../KaggleData/train_images/" + path)
-    img = tf.io.decode_jpeg(img, channels=3)
-    img = tf.image.resize(img, util.TARGET_SHAPE)
-    return (img, path)
+    image = tf.io.read_file("../KaggleData/train_images/" + image_path)
+    image = tf.io.decode_jpeg(image, channels=3)
+    image = tf.image.resize(image, util.TARGET_SHAPE)
+    return image, image_path
 
 
 ds = ds.map(mapping_func)

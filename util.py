@@ -1,7 +1,6 @@
 """
-Python script containing all global variables
-
-Louis Kapp, Felix Hammer, Yannik Ullrich
+Define all global variables.
+@authors: fhammer, lkapp
 """
 
 import pandas as pd
@@ -10,9 +9,8 @@ import pandas as pd
 # LOCAL FILEPATHS ##############################################
 ################################################################
 
-# local path to our modified version of the kaggle data
 TRAIN_DATA_PATH = "../OurTrainingData"
-SAVING_PATH = "../models/"
+SAVING_PATH = "saved_models"
 TEST_DATA_PATH = "../OurTestData"
 SUBMISSION_PATH = "submission"
 
