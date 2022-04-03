@@ -7,7 +7,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import matplotlib.pyplot as plt
 import os
 import tensorflow_datasets as tfds
-from .. import util
+import util
 import numpy as np
 import cv2
 

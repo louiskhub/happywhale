@@ -7,7 +7,7 @@ Louis Kapp, Felix Hammer, Yannik Ullrich
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from .. import util
+import util
 import math
 import random
 

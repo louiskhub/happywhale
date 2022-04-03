@@ -1,5 +1,5 @@
 import tensorflow as tf
-from .. import util
+import util
 import tensorflow_addons as tfa
 import os
 

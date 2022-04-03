@@ -1,9 +1,7 @@
 import tensorflow as tf
-from .. import util
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from visualizer import nicer_classes
+from src.visualizer import nicer_classes
 import plotnine as p9
 import pandas as pd
 import time
