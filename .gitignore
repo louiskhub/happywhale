@@ -136,5 +136,4 @@ dmypy.json
 .pyre/
 
 # TF Model ckpts
-ckpts/weights/
-/notebooks/
+notebooks/
