@@ -31,25 +31,28 @@ parser.add_argument(
     default=True
 )
 parser.add_argument(
+    "--pretrained_weighs", help="filepath to pretrained weights (use in combination with -p or -c)",
+    default=util.PRETRAINED_WEIGHTS
+)
+parser.add_argument(
     "-d", "--distance_new_whales", help="default distance for new whales",
     default=0.35
 )
 args = parser.parse_args()
 
-
 test_df = pd.DataFrame(os.listdir(util.TEST_DATA_PATH), columns=["image"])
 test_df["label"] = 0
 test_ds = ds_generator.DS_Generator().return_plain_ds(test_df, 64, train_imgs=False)
-whole_train_ds = ds_generator.DS_Generator().return_plain_ds(util.TRAIN_SPECIES_DF, 64)
+whole_train_ds = ds_generator.DS_Generator().return_plain_ds(util.TRAIN_DF, 64)
 
 
 # some model you want to try
 if args.control_model:
-    model = models.return_siamese_control_model()
+    model = models.return_siamese_control_model(args.pretrained_weighs)
 elif args.new_model:
     model = models.return_new_siamese_model()
 elif args.pretrained_model:
-    model = models.return_soft_max_pretrained_siamese_model()
+    model = models.return_soft_max_pretrained_siamese_model(args.pretrained_weighs)
 
 train_embedding = model.predict(whole_train_ds, verbose=1)
 test_embedding = model.predict(test_ds, verbose=1) 
@@ -84,7 +87,7 @@ best_indexes = np.concatenate(closest_indices)
 
 for i in tqdm.tqdm(range(len(test_df))):
     distances = best_vals[i]
-    labels = [util.TRAIN_SPECIES_DF.iloc[k, 2] for k in best_indexes[i]]
+    labels = [util.TRAIN_DF.iloc[k, 2] for k in best_indexes[i]]
 
     # if the distance to a neighboring whale is bigger then the distance for new whales, insert a new whale
     args = np.argwhere(distances > args.distance_new_whales)

@@ -14,7 +14,7 @@ import random
 def redo_counts(df):
     df = df.copy()
     df["species_counts"] = df.groupby('species_label')["species_label"].transform('count')
-    df['individum_count'] = df.groupby('individual_id')['individual_id'].transform('count')
+    df['individual_counts'] = df.groupby('individual_id')['individual_id'].transform('count')
     return df
 
 
@@ -22,8 +22,8 @@ def triplet_loss_val_split(df, split_ratio, seed):
     # We only want to take away individums with more then 2 images,so we still can use them for triplet-loss training
 
     if split_ratio:
-        values_with_more_then_2_instances_df = df[df["individum_count"] > 2]
-        values_with_2_instances_df = df[df["individum_count"] == 2]
+        values_with_more_then_2_instances_df = df[df["individual_counts"] > 2]
+        values_with_2_instances_df = df[df["individual_counts"] == 2]
 
         classes_we_could_remove = {i: [] for i in values_with_more_then_2_instances_df['label']}
         indexes_we_cant_remove = list(values_with_2_instances_df.index)
@@ -127,8 +127,8 @@ def smart_batches(df: pd.core.frame.DataFrame, batch_size: int, task: str = "ind
 
     if task == "individual":
         label = "label"
-        counts_column = "individum_count"
-        df = df[df["individum_count"] > 1]
+        counts_column = "individual_counts"
+        df = df[df["individual_counts"] > 1]
         # generate split
         train_df, val_df = triplet_loss_val_split(df, val_split, seed)
 
@@ -406,28 +406,8 @@ class DS_Generator():
         return ds
 
     def generate_single_individuals_ds(self, df, batch_size):
-        df = df[df["individum_count"] == 1]
-        return self.build_ds(df["image"], df["label"]).batch(batch_size).prefetch(10), df
+        df = df[df["individual_counts"] == 1]
+        return self.return_plain_ds(df,batch_size)  , df
 
-
-def eval_seed(df):
-    split_up_dfs = [df[df["which_set"] == x] for x in ["val_ds", "test_ds", "train_ds"]]
-    number_of_species = [len(set(df["species"])) for df in split_up_dfs]
-    return all([counts == 30 for counts in number_of_species])
-
-
-def find_good_seed(df):
-    seed = 0
-
-    while True:
-        train_ds, val_ds, test_ds, seed_df = DS_Generator().generate_species_data(df, augment=1,
-                                                                                batch_size=64,
-                                                                                factor_of_validation_ds=0.1,
-                                                                                factor_of_test_ds=0.1,
-                                                                                seed=seed,
-                                                                                return_eval_data=True)
-
-        if eval_seed(seed_df ):
-            return seed, seed_df
-        else:
-            seed += 1
+    def return_plain_ds(self, df, batch_size):
+        return self.build_ds(df["image"], df["label"]).batch(batch_size).prefetch(10)

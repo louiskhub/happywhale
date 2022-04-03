@@ -61,7 +61,16 @@ def load_weights_and_compile(model, load_weights_path=None):
     return model
 
 
-def return_siamese_control_model(load_weights_path=None):
+def return_siamese_control_model(load_weights_path):
+    """
+    Function to call when evaluating the control model (ResNet50V2 with ImageNet weights).
+    -----------------
+    arguments:
+    load_weights_path - filepath to load the preexisting weights from
+    -----------------
+    returns:
+    tf.keras.Model
+    """
     embedding_input = tf.keras.Input((224, 224, 3))
     base = tf.keras.applications.resnet_v2.ResNet50V2(
         include_top=False,
@@ -76,6 +85,16 @@ def return_siamese_control_model(load_weights_path=None):
 
 
 def return_new_siamese_model(load_weights_path=None):
+    """
+    Function to call when evaluating a new model (InceptionV3 with fresh weights).
+    -----------------
+    arguments:
+    model - tf.keras.Model
+    load_weights_path - filepath to load the preexisting weights from (default=None)
+    -----------------
+    returns:
+    tf.keras.Model
+    """
     embedding_input = tf.keras.Input((224, 224, 3))
     base = tf.keras.applications.inception_v3.InceptionV3(
         include_top=False,
@@ -89,7 +108,16 @@ def return_new_siamese_model(load_weights_path=None):
     return load_weights_and_compile(model, load_weights_path)
 
 
-def return_soft_max_pretrained_siamese_model(load_weights_path=None):
+def return_soft_max_pretrained_siamese_model(load_weights_path):
+    """
+    Function to call when evaluating the pretrained model (InceptionV3 with ImageNet weights).
+    -----------------
+    arguments:
+    load_weights_path - filepath to load the preexisting weights from
+    -----------------
+    returns:
+    tf.keras.Model
+    """
     old_model = tf.keras.models.load_model(SOFT_MAX_MODEL_PATH)
 
     output = embedding_part(old_model.layers[-2].output)  # chop of last layer
