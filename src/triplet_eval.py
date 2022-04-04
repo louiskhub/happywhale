@@ -3,6 +3,10 @@ All functions evaluation of triplet loss models.
 @authors: fhammer, lkapp
 """
 
+import os
+if os.getcwd()[-10:] != "happywhale":
+    os.chdir("..")
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt

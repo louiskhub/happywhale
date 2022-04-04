@@ -3,6 +3,10 @@ Create a Tensorflow dataset and Triplets for the Triplet loss function.
 @authors: fhammer, lkapp
 """
 
+import os
+if os.getcwd()[-10:] != "happywhale":
+    os.chdir("..")
+
 import tensorflow as tf
 import numpy as np
 import pandas as pd

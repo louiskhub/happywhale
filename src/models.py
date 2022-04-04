@@ -3,11 +3,13 @@ Create a Tensorflow dataset and Triplets for the Triplet loss function.
 @authors: fhammer, lkapp
 """
 
+import os
+if os.getcwd()[-10:] != "happywhale":
+    os.chdir("..")
 
 import tensorflow as tf
 import util
 import tensorflow_addons as tfa
-import os
 
 
 SOFT_MAX_MODEL_PATH = util.SAVING_PATH + "/inception_v3_max_pooling_imagenet_weights"

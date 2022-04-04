@@ -13,7 +13,9 @@ You can install the necessary dependencies via `pip install -r requirements.txt`
 ## Getting the Data
 
 https://drive.google.com/drive/folders/1SN__44h9bDxHrDB94WSeSGEDaxx3ISyo
+You have to be on macos / linux and have bash installed!
+run "cd repo"
+run "setup"
+
 
 ## Training the Model
-
-Append happywhale to your PYTHONPATH!!

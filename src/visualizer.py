@@ -3,6 +3,10 @@ All functions for Visualizations.
 @authors: fhammer, lkapp
 """
 
+import os
+if os.getcwd()[-10:] != "happywhale":
+    os.chdir("..")
+
 import matplotlib.pyplot as plt
 import os
 import tensorflow_datasets as tfds
