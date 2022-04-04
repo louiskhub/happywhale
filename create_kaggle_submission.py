@@ -42,7 +42,7 @@ args = parser.parse_args()
 
 test_df = pd.DataFrame(os.listdir(util.TEST_DATA_PATH), columns=["image"])
 test_df["label"] = 0
-test_ds = ds_generator.DS_Generator().return_plain_ds(test_df, 64, train_imgs=False)
+test_ds = ds_generator.DS_Generator().return_plain_ds(test_df, 64)
 whole_train_ds = ds_generator.DS_Generator().return_plain_ds(util.TRAIN_DF, 64)
 
 
