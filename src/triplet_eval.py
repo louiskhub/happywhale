@@ -6,7 +6,7 @@ All functions evaluation of triplet loss models.
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from src.visualizer import nicer_classes
+from src.visualizer import nicer_species_names
 import plotnine as p9
 import pandas as pd
 import time
@@ -102,7 +102,7 @@ def create_triplet_eval(model, train_ds, val_ds, train_df, val_df, new_whales_ds
 
     for species in train_df["species"].unique():
         mask = (train_df["species"] == species).values
-        ax.scatter(reduced_train_embeddings[mask, 0], reduced_train_embeddings[mask, 1], label=nicer_classes(species))
+        ax.scatter(reduced_train_embeddings[mask, 0], reduced_train_embeddings[mask, 1], label=nicer_species_names(species))
 
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title="Species")
     plt.figtext(0.5, 0.08, fig_info, wrap=True, horizontalalignment='center', fontsize=14)
@@ -114,7 +114,7 @@ def create_triplet_eval(model, train_ds, val_ds, train_df, val_df, new_whales_ds
 
     for species in val_df["species"].unique():
         mask = (val_df["species"] == species).values
-        ax.scatter(reduced_val_embeddings[mask, 0], reduced_val_embeddings[mask, 1], label=nicer_classes(species))
+        ax.scatter(reduced_val_embeddings[mask, 0], reduced_val_embeddings[mask, 1], label=nicer_species_names(species))
 
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title="Species")
     plt.figtext(0.5, 0.08, fig_info, wrap=True, horizontalalignment='center', fontsize=14)
@@ -135,7 +135,7 @@ def create_triplet_eval(model, train_ds, val_ds, train_df, val_df, new_whales_ds
          + p9.ggtitle(f"Distance to next neighbor,means: old: {mean_old}, new: {mean_new}"))
     p.save(filename=path_to_save + "distances_to_next_whale_density.png", height=5, width=5, units='in', dpi=1000)
 
-    names = [nicer_classes(n) for n in list(val_df["species"].unique())]
+    names = [nicer_species_names(n) for n in list(val_df["species"].unique())]
     data = [calculate_class_accuracy(species, val_df) for species in names]
     acc = [data[i][0] for i in range(len(data))]
     spec_acc = [data[i][1] for i in range(len(data))]

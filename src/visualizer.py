@@ -11,19 +11,39 @@ import numpy as np
 import cv2
 
 
-# nice plot funcs
+def nicer_species_names(name):
+    """
+    Reformat a species name for plotting.
+    -----------------
+    arguments:
+    name - String of species name to modify
+    -----------------
+    returns:
+    Modified String of species name.
+    """
 
-def nicer_classes(name):
     name = name.replace("_", " ")
     name = name[0].capitalize() + name[1:]
     i = name.find(" ")
+
     return name[:i + 1] + name[i + 1].capitalize() + name[i + 2:]
 
 
-def get_class_distribution(df, count_barrier=None):
-    counts = df["species"].apply(nicer_classes).value_counts(normalize=True)
+def get_species_distribution(df, count_barrier=None):
+    """
+    Reformat a species name for plotting.
+    -----------------
+    arguments:
+    name - String of species name to modify
+    -----------------
+    returns:
+    Modified String of species name.
+    """
+
+    counts = df["species"].apply(nicer_species_names).value_counts(normalize=True)
     if count_barrier is not None:
         counts = counts[counts < count_barrier]
+
     return {name: val for name, val in zip(counts.index, counts.values)}
 
 
@@ -72,7 +92,7 @@ def eval_soft_max_plot_acc_by_class(test_df, best_3_indices, best_3_vals):
     # calculate the accs by class
     class_acc, class_top3_acc, class_freq = {}, {}, {}
     for species in test_df["species"].unique():
-        name = nicer_classes(species)
+        name = nicer_species_names(species)
         df = test_df[test_df["species"] == species]
         species_label = df["species_label"].iloc[0]
         class_acc[name] = np.round(np.mean(best_3_indices[df.index.tolist(), 0] == species_label), 2)
