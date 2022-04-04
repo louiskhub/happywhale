@@ -1,0 +1,175 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Stylish Article
+% LaTeX Template
+% Version 2.2 (2020-10-22)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original template author:
+% Mathias Legrand (legrand.mathias@gmail.com) 
+% With extensive modifications by:
+% Vel (vel@latextemplates.com)
+% Christoph Werries (cwerries@uni-osnabrueck.de)
+%
+% License for template:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+\documentclass[10pt]{SelfArx} % Document font size and no equations flushed left
+
+\usepackage[english]{babel} % Specify a different language here - english by default
+
+\usepackage{lipsum} % Required to insert dummy text. To be removed otherwise
+
+\usepackage[nolist]{acronym}	% [nolist]: Acronym list should not be print out.
+
+\usepackage{listings}	% Required to insert lstlisting environment for code.
+
+\usepackage{makecell}	% For manual line breaks in tables
+
+\usepackage{caption}
+\usepackage{subcaption}	% Needed for subfigures
+
+\usepackage{longtable}
+
+\usepackage{tikz}
+
+\makeatletter
+\newcommand\mycircle{\@currsize\tikz[baseline=(n.210),inner sep=0pt]%
+  \node[line width=0.1em, circle,minimum size=0.7\baselineskip,draw](n){};%
+  }
+
+%\myfillcircle[zufüllender Winkel in Grad]
+\newcommand\myfillcircle[1][360]{%
+  \@currsize\tikz[baseline=(n.210),inner sep=0pt]%
+    \fill(0,0)%
+      node[line width=0.1em, circle,minimum size=0.7\baselineskip,draw](n){}%
+      --+(0,0.35\baselineskip)%
+      arc[start angle=90,end angle=90+#1, radius=0.35\baselineskip];%
+}
+
+%----------------------------------------------------------------------------------------
+%	COLUMNS
+%----------------------------------------------------------------------------------------
+\setlength{\columnsep}{0.55cm} % Distance between the two columns of text
+\setlength{\fboxrule}{0.75pt} % Width of the border around the abstract
+
+%----------------------------------------------------------------------------------------
+%	COLORS
+%----------------------------------------------------------------------------------------
+\definecolor{color1}{RGB}{172,06,52} % Corporate Design Colour of University of Osnabrueck
+\definecolor{color2}{RGB}{207,208,209} % Corporate Design Colour of University of Osnabrueck
+\definecolor{color3}{RGB}{251,185,0} % Corporate Design Colour of University of Osnabrueck
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%----------------------------------------------------------------------------------------
+%	LISTING STYLE
+%----------------------------------------------------------------------------------------
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+%----------------------------------------------------------------------------------------
+%	HYPERLINKS
+%----------------------------------------------------------------------------------------
+\usepackage{hyperref} % Required for hyperlinks
+\hypersetup{
+	hidelinks,
+	colorlinks=true,
+	breaklinks=true,
+	urlcolor=color3,
+	citecolor=color1,
+	linkcolor=color1,
+	bookmarksopen=false,
+	pdftitle={Title},
+	pdfauthor={Author}
+}
+
+\usepackage{apacite}
+\AtBeginDocument{\urlstyle{APACsame}}
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE INFORMATION
+%----------------------------------------------------------------------------------------
+\JournalInfo{\includegraphics[width=0.3\linewidth]{figures/logo_uni}}
+\Archive{} %!!NEEDED, otherwise \tableofcontent error, is for Additional notes below university logo (e.g. copyright, DOI, review/research article)
+
+\PaperTitle{Happywhale - Automated Marine Animal Recognition}
+
+\Authors{Louis Kapp, Felix Hammer}
+
+\Keywords{Triplet loss, Nature Conservation, Machine Learning} 
+\newcommand{\keywordname}{Keywords}
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+\Abstract{Nature conservation urging topic, happywhale challenge,
+From the beginning, we decided to go with a metric learning approach. We came accross triplet loss... 
+After training and evaluating different architectures our final model turned out to be X with a performance of ...\%
+summary of network/preprocessing, summary of evaluation, is (not) possible, can be further improved} % todo: auf CCC Prüfen
+
+%----------------------------------------------------------------------------------------
+%   BEGIN DOCUMENT
+%----------------------------------------------------------------------------------------
+\begin{document}
+\maketitle
+
+%\tableofcontents
+\thispagestyle{empty} % Removes page numbering from the first page
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+\input{content/00-introduction}
+\input{content/01-kaggle-challenge}
+\input{content/02-model-selection}
+\input{content/03-hypotheses}
+\input{content/04-data-pipeline}
+\input{content/05-softmax-model}
+\input{content/06-siamese-model}
+\input{content/07-conclusion}
+
+%----------------------------------------------------------------------------------------
+%	REFERENCE LIST
+%----------------------------------------------------------------------------------------
+\phantomsection
+\bibliographystyle{apacite}
+\bibliography{sources}
+
+%----------------------------------------------------------------------------------------
+%	ACRONYM LIST
+%----------------------------------------------------------------------------------------
+\begin{acronym}
+% Add your Acronyms here and be careful to always use them in the text!
+% See examples in example.tex
+\end{acronym}
+
+%----------------------------------------------------------------------------------------
+%   END DOCUMENT
+%----------------------------------------------------------------------------------------
+\end{document}
