@@ -10,9 +10,9 @@ import pandas as pd
 ################################################################
 
 TRAIN_DATA_PATH = "../OurTrainingData"
-SAVING_PATH = "saved_models"
+SAVING_PATH = "../saved_models"
 TEST_DATA_PATH = "../OurTestData"
-SUBMISSION_PATH = "submission"
+SUBMISSION_PATH = "../submission"
 PRETRAINED_WEIGHTS = "..."
 
 ################################################################

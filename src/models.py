@@ -63,7 +63,7 @@ def load_weights_and_compile(model, load_weights_path=None):
     return model
 
 
-def return_siamese_control_model(load_weights_path):
+def return_siamese_control_model(load_weights_path=None):
     """
     Function to call when evaluating the control model (ResNet50V2 with ImageNet weights).
     -----------------
