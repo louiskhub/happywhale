@@ -187,7 +187,6 @@ def create_triplet_eval(model, train_ds, val_ds, train_df, val_df, new_whales_ds
     acc = [data[i][0] for i in range(len(data))]
     spec_acc = [data[i][1] for i in range(len(data))]
     top5_acc = [data[i][2] for i in range(len(data))]
-    print(names,acc,spec_acc,top5_acc)
     names = [visualizer.nicer_species_names(n) for n in names]
     fig, ax = plt.subplots(figsize=(14, 14))
     ax.barh(names, spec_acc, color='#1f77b4', alpha=0.5)
@@ -207,3 +206,5 @@ def create_triplet_eval(model, train_ds, val_ds, train_df, val_df, new_whales_ds
     plt.savefig(path_to_save + "accuracy_by_class.png", bbox_inches='tight')
 
     val_df.to_csv(path_to_save + "val_df.csv")
+
+
