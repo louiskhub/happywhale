@@ -19,7 +19,7 @@ After that you can run `crop_and_save_images.py` to downsize the images. Please 
 
 If you want to save time, you can also download our already preprocessed images and csv files from [Google Drive](https://drive.google.com/drive/folders/1SN__44h9bDxHrDB94WSeSGEDaxx3ISyo). Everything you need is stored in `OurTrainingData.zip`. Make sure to unzip the file in the same parent directory as this repository.
 
-You can also find useful logs and model weights from our training process on [Google Drive](https://drive.google.com/drive/folders/1SN__44h9bDxHrDB94WSeSGEDaxx3ISyo)!
+You can also find useful logs and nice visualisationsfrom our training process on [Google Drive](https://drive.google.com/drive/folders/1SN__44h9bDxHrDB94WSeSGEDaxx3ISyo)!
 
 
 
