@@ -26,4 +26,7 @@ You can also find useful logs and nice visualisationsfrom our training process o
 ## Filestructure
 
 src - python directory containing all of our main code
+
 visualizations - containing visualisation & data analysis notebooks of the training dataset and really nice visaulisation of our training process, have a look at them!
+
+training - containing two examplitory training pipeline notebooks
