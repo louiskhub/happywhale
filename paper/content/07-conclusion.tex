@@ -1,0 +1,18 @@
+\section{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+\subsection{Hypothesis 1}
+Is a ”lazy” approach of just using prebuild \& pretrained architectures and preconfigured loss functions sufficient enough to produce significant results in individual classification?
+\\
+With a final Kaggle Evaluation Score of $0.077$, our model did really not achieve sufficient result to be use full in anyway in marine nature conservation. Therefore we assume that a similar approach is most likely also nut sufficient enough for other domains of nature conservation.
+
+\subsection{Hypothesis 2}
+Is Softmax classification training success a useful indicator for triplet loss training success? To be specific: Does the best performing CNN architecture under Softmax also show best performance of under triplet loss?
+\\
+With InceptionV3 model with imagenet weights just barely outperforming the Resnet50V2 model with imagenet weights in regard of validation accuracy, we do not have enough data to either support or deny this hypothesis.
+
+\subsection{Hypothesis 3}
+Can you reduce triplet loss training time with network weights pretrained on Softmax classification?
+\\
+Because of the strong performance of our InceptionV3 Model pretrained on classifying the whale and dolphins species compared to the other models, we have strong reason to believe this hypothesis.
+
