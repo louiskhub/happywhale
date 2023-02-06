@@ -72,7 +72,7 @@ nbformat==5.2.0
 nest-asyncio==1.5.5
 notebook==6.4.12
 numpy==1.22.3
-oauthlib==3.2.1
+oauthlib==3.2.2
 opencv-python==4.5.5.64
 opt-einsum==3.3.0
 packaging==21.3
