@@ -131,7 +131,7 @@ termcolor==1.1.0
 terminado==0.13.3
 testpath==0.6.0
 tf-estimator-nightly==2.8.0.dev2021122109
-tornado==6.1
+tornado==6.3.2
 tqdm==4.63.1
 traitlets==5.1.1
 typeguard==2.13.3
