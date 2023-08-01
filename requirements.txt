@@ -83,7 +83,7 @@ pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==9.3.0
 pip==22.0.4
-pipreqs==0.4.11
+pipreqs==0.4.12
 prometheus-client==0.13.1
 promise==2.3
 prompt-toolkit==3.0.27
